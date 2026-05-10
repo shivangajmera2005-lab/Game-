@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EMPIRE CLIMB — Rise. Conquer. Reign.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+
+    <!-- ======================== CURSOR ======================== -->
+    <div id="cursor"></div>
+    <div id="cursor-ring"></div>
+
+    <!-- ======================== MOUSE LIGHT ======================== -->
+    <div id="mouse-light"></div>
+
+    <!-- ======================== PARTICLES ======================== -->
+    <div id="particles"></div>
+
+    <!-- ======================== LOADING SCREEN ======================== -->
+    <div id="loader">
+        <div class="loader-title">EMPIRE CLIMB</div>
+        <div class="loader-sub">Rise · Conquer · Reign</div>
+        <div class="loader-bar-wrap">
+            <div class="loader-bar"></div>
+        </div>
+        <div class="loader-pct" id="loader-pct">0%</div>
+    </div>
+
+    <!-- ======================== MOBILE MENU ======================== -->
+    <div class="mobile-menu" id="mobile-menu">
+        <button class="mobile-close" id="mobile-close">✕</button>
+        <a href="#hero" onclick="closeMobileMenu()">Home</a>
+        <a href="#about" onclick="closeMobileMenu()">About</a>
+        <a href="#board" onclick="closeMobileMenu()">Board</a>
+        <a href="#cards" onclick="closeMobileMenu()">Cards</a>
+        <a href="#tokens" onclick="closeMobileMenu()">Tokens</a>
+        <a href="#rules" onclick="closeMobileMenu()">Rules</a>
+        <a href="#multiplayer" onclick="closeMobileMenu()">Players</a>
+        <a href="#faq" onclick="closeMobileMenu()">FAQ</a>
+    </div>
+
+    <!-- ======================== NAVBAR ======================== -->
+    <nav id="navbar">
+        <div class="nav-logo">EMPIRE CLIMB</div>
+        <ul class="nav-links">
+            <li><a href="#about">About</a></li>
+            <li><a href="#board">Board</a></li>
+            <li><a href="#cards">Cards</a></li>
+            <li><a href="#tokens">Tokens</a></li>
+            <li><a href="#rules">Rules</a></li>
+            <li><a href="#multiplayer">Players</a></li>
+            <li><a href="#faq">FAQ</a></li>
+        </ul>
+        <button class="hamburger" id="hamburger">
+            <span></span><span></span><span></span>
+        </button>
+    </nav>
+
+    <!-- ======================== HERO ======================== -->
+    <section id="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-grid"></div>
+        <div class="hero-content">
+
+            <div class="hero-eyebrow">⚔ Strategic Multiplayer Board Game ⚔</div>
+
+            <!-- LOGO: Replace the div below with your actual <img> tag -->
+            <!-- Example: <img src="./logo.png" alt="Empire Climb Logo" style="width:100px;height:100px;margin:0 auto 32px;display:block;"> -->
+            <div class="hero-logo-placeholder" title="[LOGO PLACEHOLDER]">
+                <span style="position:relative;z-index:1">EC</span>
+            </div>
+
+            <div class="hero-title-wrap">
+                <div class="hero-title-glow" aria-hidden="true">EMPIRE<br>CLIMB</div>
+                <!-- GAME TITLE: Edit the text below -->
+                <h1 class="hero-title">EMPIRE<br>CLIMB</h1>
+            </div>
+
+            <!-- TAGLINE: Edit below -->
+            <p class="hero-tagline">Rise Through The Ranks · Claim The Throne</p>
+
+            <a href="#about" class="hero-cta">
+                <span>⚡ Enter The Empire</span>
+                <span class="arrow">→</span>
+            </a>
+
+            <div class="hero-stats">
+                <div class="hero-stat-item">
+                    <div class="hero-stat-num" data-counter="6">0</div>
+                    <div class="hero-stat-label">Max Players</div>
+                </div>
+                <div class="hero-stat-item">
+                    <div class="hero-stat-num" data-counter="90">0</div>
+                    <div class="hero-stat-label">Total Cards</div>
+                </div>
+                <div class="hero-stat-item">
+                    <div class="hero-stat-num" data-counter="4">0</div>
+                    <div class="hero-stat-label">Empire Levels</div>
+                </div>
+                <div class="hero-stat-item">
+                    <div class="hero-stat-num" data-counter="13">0</div>
+                    <div class="hero-stat-label">Board Segments</div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-scroll">
+            <div class="scroll-line"></div>
+            <span>Scroll</span>
+        </div>
+    </section>
+
+    <!-- ======================== ABOUT ======================== -->
+    <section id="about" class="section-pad">
+        <div class="container">
+            <div class="about-grid">
+                <div>
+                    <div class="section-label reveal">The Game</div>
+                    <h2 class="section-title reveal reveal-delay-1">A Battle of<br>Strategy & Power</h2>
+                    <!-- ABOUT TEXT: Edit below -->
+                    <p class="section-desc reveal reveal-delay-2">
+                        Empire Climb is a ruthless multiplayer board game where empires clash,
+                        alliances shatter, and only the most strategic ruler ascends to the
+                        golden throne. Every decision could be your rise — or your downfall.
+                    </p>
+                    <div class="about-features">
+                        <div class="feature-card reveal reveal-delay-1">
+                            <div class="feature-icon">🏰</div>
+                            <div class="feature-title">4-Level Empire</div>
+                            <div class="feature-desc">Progress from the blue depths to the golden pinnacle of power.
+                            </div>
+                        </div>
+                        <div class="feature-card reveal reveal-delay-2">
+                            <div class="feature-icon">🃏</div>
+                            <div class="feature-title">90 Unique Cards</div>
+                            <div class="feature-desc">Attack, defend, sabotage and unleash powerful events.</div>
+                        </div>
+                        <div class="feature-card reveal reveal-delay-3">
+                            <div class="feature-icon">⚔</div>
+                            <div class="feature-title">Deep Strategy</div>
+                            <div class="feature-desc">Every token spent is a calculated risk in the empire wars.</div>
+                        </div>
+                        <div class="feature-card reveal reveal-delay-4">
+                            <div class="feature-icon">💀</div>
+                            <div class="feature-title">Bankruptcy Risk</div>
+                            <div class="feature-desc">Fall below 3 tokens and your empire crumbles forever.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="reveal reveal-delay-2" style="display:flex;flex-direction:column;gap:20px;">
+                    <div
+                        style="background:var(--glass);border:1px solid var(--border);border-radius:16px;padding:40px;text-align:center;">
+                        <div style="font-size:4rem;margin-bottom:16px;">🏆</div>
+                        <div
+                            style="font-family:'Cinzel',serif;font-size:1.4rem;font-weight:700;color:var(--gold-light);margin-bottom:12px;">
+                            The Golden Throne</div>
+                        <!-- THRONE DESCRIPTION: Edit below -->
+                        <p style="font-size:0.9rem;color:var(--text-dim);line-height:1.8;">
+                            Only one empire can occupy the apex. Control the single Golden Segment
+                            at Level 4 and reign supreme over all others.
+                        </p>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                        <div
+                            style="background:linear-gradient(135deg,rgba(0,26,58,0.6),rgba(0,59,122,0.4));border:1px solid rgba(0,170,255,0.3);border-radius:12px;padding:20px;text-align:center;">
+                            <div
+                                style="font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:700;color:var(--blue-glow);">
+                                L1</div>
+                            <div style="font-size:0.75rem;color:var(--text-dim);margin-top:4px;">5 Segments</div>
+                        </div>
+                        <div
+                            style="background:linear-gradient(135deg,rgba(26,18,0,0.6),rgba(61,45,0,0.4));border:1px solid rgba(255,204,0,0.3);border-radius:12px;padding:20px;text-align:center;">
+                            <div
+                                style="font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:700;color:var(--yellow);">
+                                L2</div>
+                            <div style="font-size:0.75rem;color:var(--text-dim);margin-top:4px;">4 Segments</div>
+                        </div>
+                        <div
+                            style="background:linear-gradient(135deg,rgba(26,0,0,0.6),rgba(64,0,0,0.4));border:1px solid rgba(255,45,45,0.3);border-radius:12px;padding:20px;text-align:center;">
+                            <div
+                                style="font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:700;color:var(--red-glow);">
+                                L3</div>
+                            <div style="font-size:0.75rem;color:var(--text-dim);margin-top:4px;">3 Segments</div>
+                        </div>
+                        <div
+                            style="background:linear-gradient(135deg,rgba(42,29,0,0.6),rgba(90,62,0,0.4));border:1px solid rgba(255,215,0,0.3);border-radius:12px;padding:20px;text-align:center;">
+                            <div
+                                style="font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:700;color:var(--gold);">
+                                L4</div>
+                            <div style="font-size:0.75rem;color:var(--text-dim);margin-top:4px;">1 Segment</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================== BOARD ======================== -->
+    <section id="board" class="section-pad">
+        <div class="container">
+            <div style="text-align:center" class="reveal">
+                <div class="section-label" style="justify-content:center">The Arena</div>
+                <h2 class="section-title">The Empire Board</h2>
+                <p class="section-desc" style="margin:0 auto;">
+                    Four levels of power. Thirteen segments of opportunity. One throne to rule them all.
+                    Hover each segment to feel its energy.
+                </p>
+            </div>
+
+            <div class="board-container reveal reveal-delay-2">
+                <div class="empire-triangle">
+
+                    <!-- LEVEL 4 — GOLD (top = highest) -->
+                    <div class="triangle-level level-4">
+                        <div class="segment">👑 GOLDEN THRONE</div>
+                    </div>
+
+                    <!-- LEVEL 3 — RED -->
+                    <div class="triangle-level level-3">
+                        <div class="segment">R-I</div>
+                        <div class="segment">R-II</div>
+                        <div class="segment">R-III</div>
+                    </div>
+
+                    <!-- LEVEL 2 — YELLOW -->
+                    <div class="triangle-level level-2">
+                        <div class="segment">Y-I</div>
+                        <div class="segment">Y-II</div>
+                        <div class="segment">Y-III</div>
+                        <div class="segment">Y-IV</div>
+                    </div>
+
+                    <!-- LEVEL 1 — BLUE (bottom = lowest) -->
+                    <div class="triangle-level level-1">
+                        <div class="segment">B-I</div>
+                        <div class="segment">B-II</div>
+                        <div class="segment">B-III</div>
+                        <div class="segment">B-IV</div>
+                        <div class="segment">B-V</div>
+                    </div>
+
+                </div>
+
+                <div class="board-legend">
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background:#00AAFF;box-shadow:0 0 8px #00AAFF"></div>Level 1 —
+                        Blue
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background:#FFCC00;box-shadow:0 0 8px #FFCC00"></div>Level 2 —
+                        Yellow
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background:#FF2D2D;box-shadow:0 0 8px #FF2D2D"></div>Level 3 —
+                        Red
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background:#FFD700;box-shadow:0 0 8px #FFD700"></div>Level 4 —
+                        Golden
+                    </div>
+                </div>
+
+                <div class="board-info-grid">
+                    <div class="board-info-card reveal">
+                        <div class="board-info-num" style="color:var(--blue-glow)">5</div>
+                        <div class="board-info-label">Level 1 Segments</div>
+                    </div>
+                    <div class="board-info-card reveal reveal-delay-1">
+                        <div class="board-info-num" style="color:var(--yellow)">4</div>
+                        <div class="board-info-label">Level 2 Segments</div>
+                    </div>
+                    <div class="board-info-card reveal reveal-delay-2">
+                        <div class="board-info-num" style="color:var(--red-glow)">3</div>
+                        <div class="board-info-label">Level 3 Segments</div>
+                    </div>
+                    <div class="board-info-card reveal reveal-delay-3">
+                        <div class="board-info-num" style="color:var(--gold)">1</div>
+                        <div class="board-info-label">Level 4 — The Apex</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================== CARDS ======================== -->
+    <section id="cards" class="section-pad">
+        <div class="container">
+            <div class="reveal">
+                <div class="section-label">Arsenal</div>
+                <h2 class="section-title">The Card System</h2>
+                <p class="section-desc">Five card types. Each one a weapon in the empire war. Hover to flip and reveal.
+                </p>
+            </div>
+
+            <div class="cards-grid">
+
+                <!-- EVENT CARDS -->
+                <div class="card-showcase reveal reveal-delay-1">
+                    <div class="card-inner card-event">
+                        <div class="card-front">
+                            <span class="card-type-badge" style="background:rgba(100,100,255,0.2);color:#9999FF">⚡
+                                Event</span>
+                            <div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:3rem">
+                                🌩️</div>
+                            <div class="card-title" style="color:#9999FF">Event Cards</div>
+                            <div class="card-count">20 Unique Events</div>
+                        </div>
+                        <div class="card-back">
+                            <span class="card-type-badge" style="background:rgba(100,100,255,0.2);color:#9999FF">⚡
+                                Event</span>
+                            <div class="card-title" style="color:#9999FF;margin-top:12px">Game Changers</div>
+                            <!-- EVENT CARD DESCRIPTION: Edit below -->
+                            <div class="card-desc">
+                                Dramatic events that alter the empire's landscape. From alliances to
+                                catastrophes — these cards rewrite the rules of engagement.
+                                <br><br>
+                                <em style="color:rgba(255,255,255,0.3);font-size:0.75rem">[Add your event descriptions
+                                    here]</em>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ATTACK CARDS -->
+                <div class="card-showcase reveal reveal-delay-2">
+                    <div class="card-inner card-attack">
+                        <div class="card-front">
+                            <span class="card-type-badge" style="background:rgba(255,50,50,0.2);color:var(--red-glow)">⚔
+                                Attack</span>
+                            <!-- POWER VALUE top-right: Change the number below (2–7) -->
+                            <div class="card-power-badge"
+                                style="background:rgba(255,50,50,0.2);border:1px solid rgba(255,50,50,0.5);color:var(--red-glow)">
+                                7</div>
+                            <div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:3rem">
+                                🗡️</div>
+                            <div class="card-title" style="color:var(--red-glow)">Attack Cards</div>
+                            <div class="card-count">20 Cards · Power 2–7</div>
+                        </div>
+                        <div class="card-back">
+                            <span class="card-type-badge" style="background:rgba(255,50,50,0.2);color:var(--red-glow)">⚔
+                                Attack</span>
+                            <div class="card-title" style="color:var(--red-glow);margin-top:12px">Strike Hard</div>
+                            <!-- ATTACK CARD DESCRIPTION: Edit below -->
+                            <div class="card-desc">
+                                Unleash devastation on rival empires. Power values 2–7 shown top-right.
+                                Higher power = greater destruction.
+                                <br><br>
+                                <em style="color:rgba(255,255,255,0.3);font-size:0.75rem">[Add your attack types
+                                    here]</em>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DEFENCE CARDS -->
+                <div class="card-showcase reveal reveal-delay-3">
+                    <div class="card-inner card-defence">
+                        <div class="card-front">
+                            <span class="card-type-badge" style="background:rgba(0,255,100,0.15);color:#00FF64">🛡
+                                Defence</span>
+                            <!-- POWER VALUE top-right: Change the number (2–7) -->
+                            <div class="card-power-badge"
+                                style="background:rgba(0,255,100,0.15);border:1px solid rgba(0,255,100,0.4);color:#00FF64">
+                                5</div>
+                            <div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:3rem">
+                                🛡️</div>
+                            <div class="card-title" style="color:#00FF64">Defence Cards</div>
+                            <div class="card-count">20 Cards · Power 2–7</div>
+                        </div>
+                        <div class="card-back">
+                            <span class="card-type-badge" style="background:rgba(0,255,100,0.15);color:#00FF64">🛡
+                                Defence</span>
+                            <div class="card-title" style="color:#00FF64;margin-top:12px">Hold The Line</div>
+                            <!-- DEFENCE CARD DESCRIPTION: Edit below -->
+                            <div class="card-desc">
+                                Fortify your empire against incoming attacks. Strategic defence
+                                separates conquerors from casualties.
+                                <br><br>
+                                <em style="color:rgba(255,255,255,0.3);font-size:0.75rem">[Add your defence types
+                                    here]</em>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SABOTAGE CARDS -->
+                <div class="card-showcase reveal reveal-delay-4">
+                    <div class="card-inner card-sabotage">
+                        <div class="card-front">
+                            <span class="card-type-badge" style="background:rgba(180,0,255,0.2);color:#CC44FF">💀
+                                Sabotage</span>
+                            <div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:3rem">
+                                🕵️</div>
+                            <div class="card-title" style="color:#CC44FF">Sabotage Cards</div>
+                            <div class="card-count">20 Special Abilities</div>
+                        </div>
+                        <div class="card-back">
+                            <span class="card-type-badge" style="background:rgba(180,0,255,0.2);color:#CC44FF">💀
+                                Sabotage</span>
+                            <div class="card-title" style="color:#CC44FF;margin-top:12px">Chaos Unleashed</div>
+                            <!-- SABOTAGE CARD DESCRIPTION: Edit below -->
+                            <div class="card-desc">
+                                Deploy covert sabotage on unsuspecting rivals. Strike where
+                                empires are most vulnerable.
+                                <br><br>
+                                <em style="color:rgba(255,255,255,0.3);font-size:0.75rem">[Add your sabotage
+                                    descriptions here]</em>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- POWER CARDS -->
+                <div class="card-showcase reveal reveal-delay-5">
+                    <div class="card-inner card-power">
+                        <div class="card-front">
+                            <span class="card-type-badge" style="background:rgba(255,215,0,0.2);color:var(--gold)">✨
+                                Power</span>
+                            <div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:3rem">⚡
+                            </div>
+                            <div class="card-title" style="color:var(--gold)">Power Cards</div>
+                            <div class="card-count">10 Elite Powers</div>
+                        </div>
+                        <div class="card-back">
+                            <span class="card-type-badge" style="background:rgba(255,215,0,0.2);color:var(--gold)">✨
+                                Power</span>
+                            <div class="card-title" style="color:var(--gold);margin-top:12px">Ultimate Force</div>
+                            <!-- POWER CARD DESCRIPTION: Edit below -->
+                            <div class="card-desc">
+                                The rarest cards in the empire. Only 10 exist. These can change
+                                the entire course of the game in a single play.
+                                <br><br>
+                                <em style="color:rgba(255,255,255,0.3);font-size:0.75rem">[Add your power descriptions
+                                    here]</em>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- DOT CARDS -->
+            <div style="margin-top:80px" class="reveal">
+                <div class="section-label">Dot System</div>
+                <h3 class="section-title" style="font-size:clamp(1.5rem,3vw,2.2rem)">Dot Cards</h3>
+                <p class="section-desc">20 Dot Cards across 4 rarities. Golden dots are legendary — rare, powerful,
+                    coveted by all.</p>
+                <div class="dot-cards-grid">
+                    <!-- GOLD DOT CARDS (rare) -->
+                    <div class="dot-card dot-gold">⬟</div>
+                    <div class="dot-card dot-gold">⬟</div>
+                    <div class="dot-card dot-gold">⬟</div>
+                    <!-- Other dot cards (randomly distributed) -->
+                    <div class="dot-card dot-red">●</div>
+                    <div class="dot-card dot-yellow">●</div>
+                    <div class="dot-card dot-blue">●</div>
+                    <div class="dot-card dot-red">●</div>
+                    <div class="dot-card dot-yellow">●</div>
+                    <div class="dot-card dot-blue">●</div>
+                    <div class="dot-card dot-red">●</div>
+                    <div class="dot-card dot-blue">●</div>
+                    <div class="dot-card dot-yellow">●</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================== TOKEN ECONOMY ======================== -->
+    <section id="tokens" class="section-pad">
+        <div class="container">
+            <div class="reveal">
+                <div class="section-label">Economy</div>
+                <h2 class="section-title">Token Economy</h2>
+                <p class="section-desc">Every empire runs on tokens. Spend wisely. Fall below three and your reign ends.
+                </p>
+            </div>
+            <div class="rarity-grid">
+                <div class="rarity-card rarity-gold reveal">
+                    <span class="rarity-badge badge-legendary">Legendary</span>
+                    <div class="rarity-gem">🟡</div>
+                    <div class="rarity-name" style="color:var(--gold)">Golden</div>
+                    <div class="rarity-cost" style="color:var(--gold)">8</div>
+                    <div class="rarity-label">Tokens Required</div>
+                </div>
+                <div class="rarity-card rarity-red reveal reveal-delay-1">
+                    <span class="rarity-badge badge-epic">Epic</span>
+                    <div class="rarity-gem">🔴</div>
+                    <div class="rarity-name" style="color:var(--red-glow)">Red</div>
+                    <div class="rarity-cost" style="color:var(--red-glow)">5</div>
+                    <div class="rarity-label">Tokens Required</div>
+                </div>
+                <div class="rarity-card rarity-yellow reveal reveal-delay-2">
+                    <span class="rarity-badge badge-rare">Rare</span>
+                    <div class="rarity-gem">🟡</div>
+                    <div class="rarity-name" style="color:var(--yellow)">Yellow</div>
+                    <div class="rarity-cost" style="color:var(--yellow)">3</div>
+                    <div class="rarity-label">Tokens Required</div>
+                </div>
+                <div class="rarity-card rarity-blue reveal reveal-delay-3">
+                    <span class="rarity-badge badge-common">Common</span>
+                    <div class="rarity-gem">🔵</div>
+                    <div class="rarity-name" style="color:var(--blue-glow)">Blue</div>
+                    <div class="rarity-cost" style="color:var(--blue-glow)">FREE</div>
+                    <div class="rarity-label">No Cost</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================== RULES ======================== -->
+    <section id="rules" class="section-pad">
+        <div class="container">
+            <div class="reveal">
+                <div class="section-label">Laws Of The Empire</div>
+                <h2 class="section-title">Gameplay Rules</h2>
+                <p class="section-desc">Know the laws. Master the game. Break the wrong rule and your empire falls.</p>
+            </div>
+            <div class="rules-grid">
+
+                <div class="rule-card reveal">
+                    <div class="rule-number">01</div>
+                    <div class="rule-title">🏰 Empire Progression</div>
+                    <!-- RULE 1: Edit below -->
+                    <div class="rule-desc">Advance your pieces through the four levels of the triangular empire board.
+                        Each level demands more resources and strategic cunning than the last.</div>
+                </div>
+
+                <div class="rule-card reveal reveal-delay-1">
+                    <div class="rule-number">02</div>
+                    <div class="rule-title">🃏 Card Play</div>
+                    <!-- RULE 2: Edit below -->
+                    <div class="rule-desc">Deploy cards strategically from your hand. Attack rivals, defend segments,
+                        sabotage enemies, or trigger powerful events. Each card type serves a distinct strategic
+                        purpose.</div>
+                </div>
+
+                <div class="rule-card reveal reveal-delay-2">
+                    <div class="rule-number">03</div>
+                    <div class="rule-title">🚩 Flag System</div>
+                    <!-- RULE 3: Edit below -->
+                    <div class="rule-desc">Every player begins with 5 flags. Expand up to a maximum of 12. Additional
+                        flags cost 2 tokens each. Flags represent your empire's territorial reach.</div>
+                </div>
+
+                <div class="rule-card reveal reveal-delay-3">
+                    <div class="rule-number">04</div>
+                    <div class="rule-title">💰 Token Management</div>
+                    <!-- RULE 4: Edit below -->
+                    <div class="rule-desc">Tokens are your lifeblood. Spend them to acquire higher-rarity cards. Never
+                        let your reserves fall below the minimum of 3 or face elimination from the empire wars.</div>
+                </div>
+
+                <div class="rule-card reveal">
+                    <div class="rule-number">05</div>
+                    <div class="rule-title">⚔ Combat System</div>
+                    <!-- RULE 5: Edit below -->
+                    <div class="rule-desc">Attack and Defence cards clash in power-based combat. Card power values range
+                        from 2 to 7. Superior power wins. Choose your battles carefully — resources are finite.</div>
+                </div>
+
+                <div class="rule-card reveal reveal-delay-1">
+                    <div class="rule-number">06</div>
+                    <div class="rule-title">💀 Bankruptcy & Elimination</div>
+                    <!-- RULE 6: Edit below -->
+                    <div class="rule-desc">Fall below 3 tokens and your empire collapses. No player may offer or receive
+                        loans. Bankruptcy means permanent elimination.
+                        <div class="rule-highlight">⚠ MINIMUM 3 TOKENS AT ALL TIMES</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================== MULTIPLAYER ======================== -->
+    <section id="multiplayer" class="section-pad">
+        <div class="container">
+            <div class="reveal" style="text-align:center">
+                <div class="section-label" style="justify-content:center">The Players</div>
+                <h2 class="section-title">Multiplayer System</h2>
+                <p class="section-desc" style="margin:0 auto">From 3 rivals to 6 emperors — Empire Climb scales to the
+                    ambition of every gathering.</p>
+            </div>
+
+            <div class="players-showcase">
+                <!-- PLAYER AVATARS: Edit emoji and names as desired -->
+                <div class="player-avatar reveal">
+                    <div class="avatar-ring" style="border-color:rgba(255,68,68,0.4)">👑</div>
+                    <div class="avatar-name">Emperor I</div>
+                </div>
+                <div class="player-avatar reveal reveal-delay-1">
+                    <div class="avatar-ring" style="border-color:rgba(0,170,255,0.4)">🏰</div>
+                    <div class="avatar-name">Emperor II</div>
+                </div>
+                <div class="player-avatar reveal reveal-delay-2">
+                    <div class="avatar-ring" style="border-color:rgba(255,204,0,0.4)">⚔</div>
+                    <div class="avatar-name">Emperor III</div>
+                </div>
+                <div class="player-avatar reveal reveal-delay-3">
+                    <div class="avatar-ring" style="border-color:rgba(0,255,136,0.4)">🛡</div>
+                    <div class="avatar-name">Emperor IV</div>
+                </div>
+                <div class="player-avatar reveal reveal-delay-4 player-min">
+                    <div class="avatar-ring" style="border-color:rgba(204,68,255,0.4)">🗡</div>
+                    <div class="avatar-name">Emperor V</div>
+                </div>
+                <div class="player-avatar reveal reveal-delay-5 player-min">
+                    <div class="avatar-ring" style="border-color:rgba(255,136,0,0.4)">🔥</div>
+                    <div class="avatar-name">Emperor VI</div>
+                </div>
+            </div>
+
+            <div class="multiplayer-info reveal">
+                <div class="mp-stat">
+                    <div class="mp-stat-num">3</div>
+                    <div class="mp-stat-label">Minimum Players</div>
+                </div>
+                <div class="mp-stat">
+                    <div class="mp-stat-num">6</div>
+                    <div class="mp-stat-label">Maximum Players</div>
+                </div>
+                <div class="mp-stat">
+                    <div class="mp-stat-num">∞</div>
+                    <div class="mp-stat-label">Strategies</div>
+                </div>
+                <div class="mp-stat">
+                    <div class="mp-stat-num">1</div>
+                    <div class="mp-stat-label">Can Win</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================== FLAGS ======================== -->
+    <section id="flags" class="section-pad">
+        <div class="container">
+            <div class="reveal">
+                <div class="section-label">Territory</div>
+                <h2 class="section-title">Flag System</h2>
+                <p class="section-desc">Your flags are your empire's footprint. Start with 5. Build to 12. Every extra
+                    flag costs 2 tokens.</p>
+            </div>
+            <div class="flag-ui reveal reveal-delay-1">
+                <div>
+                    <div class="flag-label">Starting Flags (Every Player)</div>
+                    <div class="flag-row">
+                        <span class="flag">🚩</span>
+                        <span class="flag">🚩</span>
+                        <span class="flag">🚩</span>
+                        <span class="flag">🚩</span>
+                        <span class="flag">🚩</span>
+                    </div>
+                </div>
+                <div style="margin-top:24px">
+                    <div class="flag-label">Maximum Flags (12 Total)</div>
+                    <div class="flag-row">
+                        <!-- First 5: starting flags -->
+                        <span class="flag">🚩</span>
+                        <span class="flag">🚩</span>
+                        <span class="flag">🚩</span>
+                        <span class="flag">🚩</span>
+                        <span class="flag">🚩</span>
+                        <!-- Last 7: purchased extras (dimmed) -->
+                        <span class="flag extra">🚩</span>
+                        <span class="flag extra">🚩</span>
+                        <span class="flag extra">🚩</span>
+                        <span class="flag extra">🚩</span>
+                        <span class="flag extra">🚩</span>
+                        <span class="flag extra">🚩</span>
+                        <span class="flag extra">🚩</span>
+                    </div>
+                    <div
+                        style="font-size:0.55rem;color:var(--text-dim);margin-top:8px;font-family:'Orbitron',monospace;letter-spacing:0.1em;">
+                        ◼ Starting 5 flags &nbsp;|&nbsp; ◻ Extra flags (2 tokens each)
+                    </div>
+                </div>
+                <div class="flag-stats-row">
+                    <div class="flag-stat">
+                        <div class="flag-stat-num">5</div>
+                        <div class="flag-stat-label">Starting Flags</div>
+                    </div>
+                    <div class="flag-stat">
+                        <div class="flag-stat-num">12</div>
+                        <div class="flag-stat-label">Maximum Flags</div>
+                    </div>
+                    <div class="flag-stat">
+                        <div class="flag-stat-num">2</div>
+                        <div class="flag-stat-label">Tokens / Extra Flag</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================== BANKRUPTCY ======================== -->
+    <section id="bankruptcy" class="section-pad">
+        <div class="container">
+            <div class="reveal" style="text-align:center">
+                <div class="section-label" style="justify-content:center">⚠ Critical Rule</div>
+                <h2 class="section-title">Bankruptcy Rule</h2>
+                <p class="section-desc" style="margin:0 auto">The ultimate threat in Empire Climb. One wrong move and
+                    your empire is dust.</p>
+            </div>
+            <div class="bankruptcy-card reveal reveal-delay-1">
+                <div class="bankruptcy-icon">💀</div>
+                <div class="bankruptcy-title">Empire Collapse</div>
+                <!-- BANKRUPTCY DESCRIPTION: Edit below -->
+                <div class="bankruptcy-desc">
+                    Every player must maintain a minimum of <strong style="color:var(--red-glow)">3 tokens</strong> at
+                    all times.
+                    If your treasury falls below this threshold, your empire is declared bankrupt and you are
+                    permanently eliminated from the game. There are no second chances — and no mercy.
+                </div>
+                <div class="bankruptcy-rules">
+                    <div class="bk-rule">⚠ Min 3 Tokens Always</div>
+                    <div class="bk-rule">🚫 No Loans Allowed</div>
+                    <div class="bk-rule">💀 Bankruptcy = Elimination</div>
+                    <div class="bk-rule">🔒 No Exceptions</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================== STRATEGY ======================== -->
+    <section id="strategy" class="section-pad">
+        <div class="container">
+            <div class="reveal">
+                <div class="section-label">Mastery</div>
+                <h2 class="section-title">Strategy & Risk</h2>
+                <p class="section-desc">The difference between an emperor and a footnote is strategy. Master these
+                    principles to reign supreme.</p>
+            </div>
+            <div class="strategy-grid">
+
+                <div class="strategy-card reveal">
+                    <div class="strategy-icon">🏹</div>
+                    <div class="strategy-title">Aggressive Expansion</div>
+                    <!-- STRATEGY 1: Edit below -->
+                    <div class="strategy-desc">Strike early and strike hard. Use attack cards to displace rivals from
+                        key segments before they fortify. Speed is your greatest weapon in the early empire.</div>
+                </div>
+
+                <div class="strategy-card reveal reveal-delay-1">
+                    <div class="strategy-icon">🛡</div>
+                    <div class="strategy-title">Defensive Fortress</div>
+                    <!-- STRATEGY 2: Edit below -->
+                    <div class="strategy-desc">Build an impenetrable wall of defence cards. Let others drain resources
+                        attacking each other while you conserve tokens for the critical final push.</div>
+                </div>
+
+                <div class="strategy-card reveal reveal-delay-2">
+                    <div class="strategy-icon">💰</div>
+                    <div class="strategy-title">Token Conservation</div>
+                    <!-- STRATEGY 3: Edit below -->
+                    <div class="strategy-desc">Never spend what you don't need to. Token efficiency is the hallmark of a
+                        true strategist. Keep rivals near bankruptcy while staying safely above 3.</div>
+                </div>
+
+                <div class="strategy-card reveal">
+                    <div class="strategy-icon">🕵</div>
+                    <div class="strategy-title">Shadow Sabotage</div>
+                    <!-- STRATEGY 4: Edit below -->
+                    <div class="strategy-desc">Deploy sabotage cards against the leader, not the weakest. Disrupt flag
+                        systems and use chaos as your greatest ally on the climb to the throne.</div>
+                </div>
+
+                <div class="strategy-card reveal reveal-delay-1">
+                    <div class="strategy-icon">🚩</div>
+                    <div class="strategy-title">Flag Dominance</div>
+                    <!-- STRATEGY 5: Edit below -->
+                    <div class="strategy-desc">Control the board through flag superiority. Expanded territory means more
+                        presence, more options, and more paths to the Golden Throne.</div>
+                </div>
+
+                <div class="strategy-card reveal reveal-delay-2">
+                    <div class="strategy-icon">⚡</div>
+                    <div class="strategy-title">Event Exploitation</div>
+                    <!-- STRATEGY 6: Edit below -->
+                    <div class="strategy-desc">Read event cards for opportunity, not just threat. Every catastrophe for
+                        your rivals is a window for your ascent. Turn chaos into conquest.</div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================== FAQ ======================== -->
+    <section id="faq" class="section-pad">
+        <div class="container-sm">
+            <div class="reveal">
+                <div class="section-label">Questions</div>
+                <h2 class="section-title">Frequently Asked</h2>
+            </div>
+
+            <div class="faq-list">
+
+                <!-- FAQ ITEMS: Copy/paste a .faq-item block to add more questions -->
+
+                <div class="faq-item reveal">
+                    <div class="faq-question">
+                        How many players can participate in Empire Climb?
+                        <div class="faq-icon">+</div>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">Empire Climb supports 3 to 6 players. With 3 players, competition
+                            is intense and direct. With 6, the board becomes a chaotic battlefield of shifting alliances
+                            and devastating betrayals.</div>
+                    </div>
+                </div>
+
+                <div class="faq-item reveal reveal-delay-1">
+                    <div class="faq-question">
+                        What happens if I run out of tokens?
+                        <div class="faq-icon">+</div>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">If your token count drops below 3 at any point, your empire is
+                            declared bankrupt and you are permanently eliminated. No loans can be given or received.
+                            Manage your treasury with absolute care.</div>
+                    </div>
+                </div>
+
+                <div class="faq-item reveal reveal-delay-2">
+                    <div class="faq-question">
+                        How does the card power system work?
+                        <div class="faq-icon">+</div>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">Attack and Defence cards have power values ranging from 2 to 7,
+                            displayed in the top-right corner. When cards clash in combat, the higher power value wins.
+                            Power Cards and Sabotage Cards have unique special abilities instead of numeric power.</div>
+                    </div>
+                </div>
+
+                <div class="faq-item reveal reveal-delay-3">
+                    <div class="faq-question">
+                        What are Dot Cards used for?
+                        <div class="faq-icon">+</div>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">20 Dot Cards exist across four colors — Golden, Red, Yellow, and
+                            Blue. Golden Dot Cards are legendary and extremely rare. Their specific game function will
+                            be detailed in the full rulebook.</div>
+                    </div>
+                </div>
+
+                <div class="faq-item reveal reveal-delay-4">
+                    <div class="faq-question">
+                        Can I buy more flags during the game?
+                        <div class="faq-icon">+</div>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">Yes. Every player starts with 5 flags and can purchase additional
+                            flags at a cost of 2 tokens each. The absolute maximum is 12 flags per player. Each flag
+                            purchase depletes your treasury — plan carefully.</div>
+                    </div>
+                </div>
+
+                <div class="faq-item reveal">
+                    <div class="faq-question">
+                        What makes Golden Cards so special?
+                        <div class="faq-icon">+</div>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">Golden Cards represent the highest tier in the token economy,
+                            costing 8 tokens to acquire. They are the most powerful cards in the game and can
+                            dramatically shift the balance of power. Use them at the decisive moment.</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================== FOOTER ======================== -->
+    <footer>
+        <div class="container">
+            <div class="footer-top">
+                <div>
+                    <div class="footer-brand-name">EMPIRE CLIMB</div>
+                    <!-- FOOTER DESCRIPTION: Edit below -->
+                    <div class="footer-brand-desc">Rise through the ranks. Command your empire. Claim the golden throne.
+                        The ultimate strategic board game for those who dare to conquer.</div>
+                    <div class="social-links">
+                        <!-- SOCIAL LINKS: Replace # with your actual URLs -->
+                        <a href="#" class="social-link" title="Instagram">📸</a>
+                        <a href="#" class="social-link" title="Twitter / X">🐦</a>
+                        <a href="#" class="social-link" title="YouTube">▶</a>
+                        <a href="#" class="social-link" title="Discord">💬</a>
+                        <a href="#" class="social-link" title="TikTok">🎵</a>
+                    </div>
+                </div>
+                <div>
+                    <div class="footer-col-title">Game</div>
+                    <div class="footer-links">
+                        <a href="#about">About</a>
+                        <a href="#board">Board</a>
+                        <a href="#cards">Cards</a>
+                        <a href="#rules">Rules</a>
+                    </div>
+                </div>
+                <div>
+                    <div class="footer-col-title">Systems</div>
+                    <div class="footer-links">
+                        <a href="#tokens">Tokens</a>
+                        <a href="#flags">Flags</a>
+                        <a href="#multiplayer">Players</a>
+                        <a href="#strategy">Strategy</a>
+                    </div>
+                </div>
+                <div>
+                    <div class="footer-col-title">Contact</div>
+                    <div class="footer-links">
+                        <!-- CONTACT EMAILS: Replace with actual addresses -->
+                        <a href="mailto:press@empireclimb.com">press@empireclimb.com</a>
+                        <a href="mailto:info@empireclimb.com">info@empireclimb.com</a>
+                        <a href="#faq">FAQ</a>
+                        <a href="#">Support</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <!-- COPYRIGHT: Edit year/name below -->
+                <div class="footer-copy">© 2025 Empire Climb. All rights reserved. Rise. Conquer. Reign.</div>
+                <div class="footer-legal">
+                    <a href="#">Privacy</a>
+                    <a href="#">Terms</a>
+                    <a href="#">Cookies</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+</body>
+
+</html>
