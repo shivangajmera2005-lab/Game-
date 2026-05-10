@@ -35,37 +35,6 @@ body {
   color: var(--text);
   font-family: 'Rajdhani', sans-serif;
   overflow-x: hidden;
-  cursor: none;
-}
-
-/* ===== CUSTOM CURSOR ===== */
-#cursor {
-  width: 12px;
-  height: 12px;
-  background: var(--gold);
-  border-radius: 50%;
-  position: fixed;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-  z-index: 9999;
-  box-shadow: 0 0 15px var(--gold), 0 0 30px var(--gold);
-  transform: translate(-50%, -50%);
-  transition: transform 0.1s;
-}
-
-#cursor-ring {
-  width: 40px;
-  height: 40px;
-  border: 1px solid rgba(255, 215, 0, 0.4);
-  border-radius: 50%;
-  position: fixed;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-  z-index: 9998;
-  transform: translate(-50%, -50%);
-  transition: all 0.12s ease;
 }
 
 /* ===== LOADING SCREEN ===== */
@@ -199,19 +168,6 @@ body {
     transform: translateY(-20vh) scale(1);
     opacity: 0;
   }
-}
-
-/* ===== MOUSE LIGHT ===== */
-#mouse-light {
-  position: fixed;
-  width: 500px;
-  height: 500px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.04) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 1;
-  transform: translate(-50%, -50%);
-  transition: all 0.08s ease;
 }
 
 /* ===== NAVBAR ===== */
@@ -473,7 +429,6 @@ nav.scrolled {
   color: var(--gold);
   text-decoration: none;
   text-transform: uppercase;
-  cursor: none;
   position: relative;
   overflow: hidden;
   opacity: 0;

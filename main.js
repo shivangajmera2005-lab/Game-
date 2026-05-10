@@ -21,47 +21,6 @@ setTimeout(() => {
 }, 3500);
 
 // ============================================================
-// CUSTOM CURSOR
-// ============================================================
-const cursor = document.getElementById('cursor');
-const cursorRing = document.getElementById('cursor-ring');
-const mouseLight = document.getElementById('mouse-light');
-let mx = 0, my = 0, rx = 0, ry = 0;
-
-document.addEventListener('mousemove', e => {
-  mx = e.clientX;
-  my = e.clientY;
-  cursor.style.left = mx + 'px';
-  cursor.style.top = my + 'px';
-  mouseLight.style.left = mx + 'px';
-  mouseLight.style.top = my + 'px';
-});
-
-// Smooth-follow ring animation
-function animRing() {
-  rx += (mx - rx) * 0.12;
-  ry += (my - ry) * 0.12;
-  cursorRing.style.left = rx + 'px';
-  cursorRing.style.top = ry + 'px';
-  requestAnimationFrame(animRing);
-}
-animRing();
-
-// Cursor grows on interactive elements
-document.querySelectorAll('a, button, .faq-question, .card-showcase, .rarity-card, .strategy-card, .feature-card, .rule-card, .segment').forEach(el => {
-  el.addEventListener('mouseenter', () => {
-    cursor.style.transform = 'translate(-50%,-50%) scale(2)';
-    cursorRing.style.transform = 'translate(-50%,-50%) scale(1.5)';
-    cursorRing.style.borderColor = 'rgba(255,215,0,0.7)';
-  });
-  el.addEventListener('mouseleave', () => {
-    cursor.style.transform = 'translate(-50%,-50%) scale(1)';
-    cursorRing.style.transform = 'translate(-50%,-50%) scale(1)';
-    cursorRing.style.borderColor = 'rgba(255,215,0,0.4)';
-  });
-});
-
-// ============================================================
 // FLOATING PARTICLES
 // ============================================================
 const particlesEl = document.getElementById('particles');
