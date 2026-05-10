@@ -97,11 +97,11 @@ beginConquestBtn.addEventListener('click', () => {
         id: p.id,
         name: p.name || `Player ${p.id}`,
         color: p.color,
-        tokens: 10,
+        tokens: 15,
         flags: 5,
         bankrupt: false
     }));
-    
+
     localStorage.setItem('empireClimbPlayers', JSON.stringify(gamePlayers));
     window.location.href = 'game.html';
 });

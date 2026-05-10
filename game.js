@@ -24,8 +24,13 @@ function initGame() {
     }
     players = JSON.parse(data);
     
-    // Add hand to players
-    players.forEach(p => { p.hand = []; });
+    // Add hand to players (5 starting cards each)
+    players.forEach(p => {
+        p.hand = [];
+        for (let i = 0; i < 5; i++) {
+            p.hand.push(drawRandomCard());
+        }
+    });
 
     // Init board
     document.querySelectorAll('.segment').forEach(seg => {
@@ -154,19 +159,36 @@ function endTurn() {
     startTurn();
 }
 
+function drawRandomCard() {
+    const coreCards = [
+        {name: 'Attack Card', desc: 'Power: 4. Play to attack an enemy segment.'},
+        {name: 'Defence Card', desc: 'Power: 5. Defend against an attack.'},
+        {name: 'Token Cache', desc: 'Gain 2 tokens immediately.'}
+    ];
+    const claimCards = [
+        {name: 'Blue Claim (L1)', desc: 'Required to claim a Blue (Level 1) segment.', type: 'claim', level: 1},
+        {name: 'Yellow Claim (L2)', desc: 'Required to claim a Yellow (Level 2) segment.', type: 'claim', level: 2},
+        {name: 'Red Claim (L3)', desc: 'Required to claim a Red (Level 3) segment.', type: 'claim', level: 3},
+        {name: 'Gold Claim (L4)', desc: 'Required to claim the Golden Throne (Level 4).', type: 'claim', level: 4}
+    ];
+    
+    // Weighted deck so players don't get stuck early game without Level 1 claim cards
+    const deck = [
+        ...coreCards, ...coreCards,
+        claimCards[0], claimCards[0], claimCards[0], // L1 is most common
+        claimCards[1], claimCards[1], // L2
+        claimCards[2], // L3
+        claimCards[3]  // L4
+    ];
+    return deck[Math.floor(Math.random() * deck.length)];
+}
+
 // Actions
 btnDraw.addEventListener('click', () => {
     if (turnState.hasDrawn) return;
     const cp = players[currentPlayerIndex];
     
-    // Simulate drawing a basic generic card
-    const cardTypes = [
-        {name: 'Attack Card', desc: 'Power: 4. Play to attack an enemy segment.'},
-        {name: 'Defence Card', desc: 'Power: 5. Defend against an attack.'},
-        {name: 'Token Cache', desc: 'Gain 2 tokens immediately.'}
-    ];
-    const drawn = cardTypes[Math.floor(Math.random() * cardTypes.length)];
-    cp.hand.push(drawn);
+    cp.hand.push(drawRandomCard());
     
     turnState.hasDrawn = true;
     logAction(`<strong>${cp.name}</strong> drew a card.`);
@@ -214,19 +236,41 @@ function handleSegmentClick(id, segEl) {
     // Claiming empty segment
     if (segment.owner === null) {
         const cost = segmentCosts[segment.level];
-        // Ensure they have enough tokens (must remain >= 3)
+        
+        // 1. Check if they have the corresponding claim card
+        const cardIndex = cp.hand.findIndex(c => c.type === 'claim' && c.level === segment.level);
+        if (cardIndex === -1) {
+            alert(`You need a Level ${segment.level} Claim Card in your hand to claim this segment!`);
+            return;
+        }
+
+        // 2. Check Prerequisite (Hierarchical Progression)
+        if (segment.level > 1) {
+            const requiredLevel = segment.level - 1;
+            const ownsRequired = Object.values(board).some(s => s.owner === cp.id && s.level === requiredLevel);
+            if (!ownsRequired) {
+                alert(`You must own at least one Level ${requiredLevel} segment before claiming a Level ${segment.level} segment!`);
+                return;
+            }
+        }
+        
+        // 3. Ensure they have enough tokens (must remain >= 3)
         if (cp.tokens - cost >= 3) {
-            // Also need flags
+            // 4. Ensure they have enough flags
             const ownedCount = Object.values(board).filter(s => s.owner === cp.id).length;
             if (ownedCount >= cp.flags) {
                 alert("You don't have enough flags to claim more territory.");
                 return;
             }
             
+            // Process the claim
             cp.tokens -= cost;
+            cp.hand.splice(cardIndex, 1); // Consume the claim card
             segment.owner = cp.id;
             turnState.hasActed = true;
-            logAction(`<strong>${cp.name}</strong> claimed ${segEl.childNodes[0].nodeValue.trim()} for ${cost} tokens.`);
+            
+            const segmentName = segEl.innerText.split('\n')[0].trim();
+            logAction(`<strong>${cp.name}</strong> played a Claim Card and conquered ${segmentName} for ${cost} tokens.`);
             updateUI();
         } else {
             alert(`Not enough tokens! Cost is ${cost}, and you must keep at least 3 tokens.`);

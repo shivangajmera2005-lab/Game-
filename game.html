@@ -1,30 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Empire Climb - The Arena</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="index.css">
     <link rel="stylesheet" href="game.css">
 </head>
+
 <body>
     <!-- Rotate Overlay -->
     <div id="rotate-overlay" class="rotate-overlay">
         <div class="rotate-icon">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
                 <line x1="12" y1="18" x2="12.01" y2="18"></line>
             </svg>
         </div>
         <h2 style="font-family: 'Cinzel', serif; margin-bottom: 12px;">Rotate Device</h2>
-        <p style="font-family: 'Rajdhani', sans-serif; color: var(--text-dim); max-width: 300px; margin: 0 auto;">Empire Climb must be played in landscape mode for the best strategic view.</p>
+        <p style="font-family: 'Rajdhani', sans-serif; color: var(--text-dim); max-width: 300px; margin: 0 auto;">Empire
+            Climb must be played in landscape mode for the best strategic view.</p>
     </div>
 
     <div id="particles"></div>
-    
+
     <div class="game-container">
         <!-- Sidebar: Players -->
         <aside class="sidebar players-sidebar">
@@ -38,28 +44,56 @@
                 <div class="empire-triangle" id="empire-board">
                     <!-- LEVEL 4 — GOLD -->
                     <div class="triangle-level level-4">
-                        <div class="segment" data-level="4" data-id="L4-1">👑 GOLDEN THRONE (Cost: 8)</div>
+                        <div class="segment" data-level="4" data-id="L4-1">
+                            <div style="text-align: center; line-height: 1.4;">
+                                👑 GOLDEN THRONE<br>(Cost: 8)
+                            </div>
+                        </div>
                     </div>
                     <!-- LEVEL 3 — RED -->
                     <div class="triangle-level level-3">
-                        <div class="segment" data-level="3" data-id="L3-1">R-I (Cost: 5)</div>
-                        <div class="segment" data-level="3" data-id="L3-2">R-II (Cost: 5)</div>
-                        <div class="segment" data-level="3" data-id="L3-3">R-III (Cost: 5)</div>
+                        <div class="segment" data-level="3" data-id="L3-1">
+                            <div style="text-align: center;">R-I<br>(Cost: 5)</div>
+                        </div>
+                        <div class="segment" data-level="3" data-id="L3-2">
+                            <div style="text-align: center;">R-II<br>(Cost: 5)</div>
+                        </div>
+                        <div class="segment" data-level="3" data-id="L3-3">
+                            <div style="text-align: center;">R-III<br>(Cost: 5)</div>
+                        </div>
                     </div>
                     <!-- LEVEL 2 — YELLOW -->
                     <div class="triangle-level level-2">
-                        <div class="segment" data-level="2" data-id="L2-1">Y-I (Cost: 3)</div>
-                        <div class="segment" data-level="2" data-id="L2-2">Y-II (Cost: 3)</div>
-                        <div class="segment" data-level="2" data-id="L2-3">Y-III (Cost: 3)</div>
-                        <div class="segment" data-level="2" data-id="L2-4">Y-IV (Cost: 3)</div>
+                        <div class="segment" data-level="2" data-id="L2-1">
+                            <div style="text-align: center;">Y-I<br>(Cost: 3)</div>
+                        </div>
+                        <div class="segment" data-level="2" data-id="L2-2">
+                            <div style="text-align: center;">Y-II<br>(Cost: 3)</div>
+                        </div>
+                        <div class="segment" data-level="2" data-id="L2-3">
+                            <div style="text-align: center;">Y-III<br>(Cost: 3)</div>
+                        </div>
+                        <div class="segment" data-level="2" data-id="L2-4">
+                            <div style="text-align: center;">Y-IV<br>(Cost: 3)</div>
+                        </div>
                     </div>
                     <!-- LEVEL 1 — BLUE -->
                     <div class="triangle-level level-1">
-                        <div class="segment" data-level="1" data-id="L1-1">B-I (Cost: 0)</div>
-                        <div class="segment" data-level="1" data-id="L1-2">B-II (Cost: 0)</div>
-                        <div class="segment" data-level="1" data-id="L1-3">B-III (Cost: 0)</div>
-                        <div class="segment" data-level="1" data-id="L1-4">B-IV (Cost: 0)</div>
-                        <div class="segment" data-level="1" data-id="L1-5">B-V (Cost: 0)</div>
+                        <div class="segment" data-level="1" data-id="L1-1">
+                            <div style="text-align: center;">B-I<br>(Cost: 0)</div>
+                        </div>
+                        <div class="segment" data-level="1" data-id="L1-2">
+                            <div style="text-align: center;">B-II<br>(Cost: 0)</div>
+                        </div>
+                        <div class="segment" data-level="1" data-id="L1-3">
+                            <div style="text-align: center;">B-III<br>(Cost: 0)</div>
+                        </div>
+                        <div class="segment" data-level="1" data-id="L1-4">
+                            <div style="text-align: center;">B-IV<br>(Cost: 0)</div>
+                        </div>
+                        <div class="segment" data-level="1" data-id="L1-5">
+                            <div style="text-align: center;">B-V<br>(Cost: 0)</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -77,13 +111,13 @@
             <div class="current-turn-indicator" id="turn-indicator">
                 Current Turn: <span id="current-player-name">--</span>
             </div>
-            
+
             <div class="action-buttons">
                 <button id="btn-draw" class="action-btn">Draw Card</button>
                 <button id="btn-buy-flag" class="action-btn">Buy Flag (2 Tokens)</button>
                 <button id="btn-end-turn" class="action-btn end-turn-btn">End Turn</button>
             </div>
-            
+
             <div class="hand-area">
                 <h3 class="log-title" style="margin-top:20px;">YOUR HAND</h3>
                 <div id="player-hand" class="player-hand">
@@ -92,7 +126,8 @@
             </div>
         </aside>
     </div>
-    
+
     <script src="game.js"></script>
 </body>
+
 </html>
