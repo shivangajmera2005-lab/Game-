@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empire Climb - Gather Legions</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="players.css">
+</head>
+<body>
+    <div id="particles"></div>
+    <div class="players-container">
+        <h1 class="players-title">EMPIRE CLIMB</h1>
+        <p class="players-subtitle">"A NEW RULER RISES"</p>
+
+        <div class="players-box">
+            <div class="players-header">
+                <div class="players-header-left">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <span>GATHER YOUR LEGIONS</span>
+                </div>
+                <button id="add-player-btn" class="add-player-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                    Add Player
+                </button>
+            </div>
+
+            <div id="players-list" class="players-list">
+                <!-- Players will be injected here via JS -->
+            </div>
+
+            <button id="begin-conquest-btn" class="begin-conquest-btn">BEGIN CONQUEST</button>
+            <p class="players-footer">3 TO 6 PLAYERS REQUIRED TO RULE</p>
+        </div>
+    </div>
+    <script src="players.js"></script>
+</body>
+</html>

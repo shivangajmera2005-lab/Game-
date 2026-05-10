@@ -1,0 +1,335 @@
+.game-container {
+    display: grid;
+    grid-template-columns: 300px 1fr 300px;
+    height: 100vh;
+    width: 100vw;
+    background: var(--bg);
+    position: relative;
+    z-index: 2;
+    overflow: hidden;
+}
+
+.sidebar {
+    background: rgba(4, 4, 10, 0.8);
+    border-right: 1px solid var(--border);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.actions-sidebar {
+    border-right: none;
+    border-left: 1px solid var(--border);
+}
+
+.sidebar-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.2rem;
+    color: var(--gold);
+    text-align: center;
+    letter-spacing: 0.2em;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+/* Roster */
+.players-roster {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.roster-card {
+    background: #111113;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 16px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.roster-card.active-turn {
+    border-color: var(--gold);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+    transform: scale(1.02);
+}
+
+.roster-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.roster-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.roster-name {
+    font-family: system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: white;
+}
+
+.roster-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+}
+
+.stat-val {
+    color: var(--gold-light);
+    font-size: 0.9rem;
+}
+.stat-val.danger {
+    color: var(--red);
+}
+
+/* Main Arena */
+.main-arena {
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    position: relative;
+}
+
+.board-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.empire-triangle {
+    width: 100%;
+    max-width: 600px;
+}
+
+.segment {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-width: 2px;
+}
+
+.segment.claimed {
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+    opacity: 0.9;
+}
+
+.segment-owner {
+    font-size: 0.6rem;
+    color: white;
+    background: rgba(0,0,0,0.5);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-top: 4px;
+}
+
+/* Action Log */
+.action-log-wrap {
+    height: 200px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.log-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.2em;
+    margin-bottom: 12px;
+}
+
+.action-log {
+    flex: 1;
+    overflow-y: auto;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.log-entry {
+    color: #ccc;
+    animation: fadeIn 0.3s;
+}
+
+.log-entry strong {
+    color: white;
+}
+
+/* Commands */
+.current-turn-indicator {
+    background: rgba(255, 215, 0, 0.1);
+    border: 1px solid var(--gold);
+    padding: 16px;
+    border-radius: 8px;
+    text-align: center;
+    font-family: 'Rajdhani', sans-serif;
+    color: var(--gold);
+    margin-bottom: 24px;
+}
+
+.current-turn-indicator span {
+    display: block;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: white;
+    margin-top: 4px;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.action-btn {
+    background: #111113;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 14px;
+    border-radius: 6px;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+}
+
+.action-btn:hover:not(:disabled) {
+    border-color: white;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.action-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.end-turn-btn {
+    background: var(--gold);
+    color: black;
+    border-color: var(--gold);
+    font-weight: 700;
+}
+.end-turn-btn:hover:not(:disabled) {
+    background: var(--gold-light);
+    border-color: var(--gold-light);
+}
+
+/* Hand Area */
+.player-hand {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.game-card {
+    background: #1a1a24;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.game-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.card-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: white;
+}
+
+.card-desc {
+    font-size: 0.75rem;
+    color: #999;
+    margin-top: 4px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* Rotate Overlay */
+.rotate-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 99999;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+}
+
+.rotate-icon {
+    margin-bottom: 24px;
+    animation: rotatePhone 2s infinite ease-in-out;
+}
+
+@keyframes rotatePhone {
+    0% { transform: rotate(0deg); }
+    50% { transform: rotate(90deg); }
+    100% { transform: rotate(90deg); }
+}
+
+/* Portrait Mobile Layout: Force Rotate Overlay */
+@media (max-width: 1024px) and (orientation: portrait) {
+    .game-container {
+        display: none !important;
+    }
+    .rotate-overlay {
+        display: flex;
+    }
+}
+
+/* Landscape Mobile Layout: Shrink columns to fit screen */
+@media (max-width: 1024px) and (orientation: landscape) {
+    .game-container {
+        grid-template-columns: 220px 1fr 220px;
+    }
+    .sidebar {
+        padding: 12px;
+    }
+    .main-arena {
+        padding: 12px;
+    }
+    .sidebar-title {
+        font-size: 1rem;
+        margin-bottom: 16px;
+    }
+    .empire-triangle {
+        transform: scale(0.65);
+        transform-origin: center;
+    }
+    .action-log-wrap {
+        height: 120px; /* smaller log on landscape mobile */
+        padding: 10px;
+    }
+}
