@@ -313,24 +313,46 @@
 /* Landscape Mobile Layout: Shrink columns to fit screen */
 @media (max-width: 1024px) and (orientation: landscape) {
     .game-container {
-        grid-template-columns: 220px 1fr 220px;
+        grid-template-columns: 200px minmax(0, 1fr) 200px;
     }
     .sidebar {
-        padding: 12px;
+        padding: 10px;
     }
     .main-arena {
-        padding: 12px;
+        padding: 10px;
+        min-width: 0; /* Prevents grid blowout from large intrinsic width */
+        display: flex;
+        flex-direction: column;
+    }
+    .board-area {
+        min-width: 0;
+        min-height: 0;
     }
     .sidebar-title {
-        font-size: 1rem;
-        margin-bottom: 16px;
+        font-size: 0.9rem;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
     }
     .empire-triangle {
-        transform: scale(0.65);
+        transform: scale(0.55);
         transform-origin: center;
     }
     .action-log-wrap {
-        height: 120px; /* smaller log on landscape mobile */
+        height: 110px; /* smaller log on landscape mobile */
+        padding: 10px;
+    }
+    .action-btn {
+        padding: 10px;
+        font-size: 0.75rem;
+    }
+    .roster-card {
+        padding: 12px;
+    }
+    .current-turn-indicator {
+        padding: 12px;
+        margin-bottom: 16px;
+    }
+    .game-card {
         padding: 10px;
     }
 }
