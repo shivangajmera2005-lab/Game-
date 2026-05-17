@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Empire Climb - The Arena</title>
+    <link rel="icon" type="image/png" href="Pictures/ICON_IMAGE.PNG">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -110,12 +111,18 @@
             <h2 class="sidebar-title">COMMANDS</h2>
             <div class="current-turn-indicator" id="turn-indicator">
                 Current Turn: <span id="current-player-name">--</span>
+                <div style="font-size:0.7em; margin-top:4px;">Round: <span id="round-counter">1</span></div>
+            </div>
+            
+            <div class="active-event-box" id="active-event-box" style="display:none; margin: 15px 0; padding: 10px; border: 1px solid var(--purple-glow); background: rgba(168, 85, 247, 0.1); border-radius: 5px; text-align: center;">
+                <div style="font-size: 0.7em; color: var(--purple-glow); text-transform: uppercase; letter-spacing: 1px;">Current Event</div>
+                <div id="active-event-text" style="font-size: 0.85em; margin-top: 5px; color: var(--text);"></div>
             </div>
 
             <div class="action-buttons">
-                <button id="btn-draw" class="action-btn">Draw Card</button>
                 <button id="btn-buy-flag" class="action-btn">Buy Flag (2 Tokens)</button>
-                <button id="btn-end-turn" class="action-btn end-turn-btn">End Turn</button>
+                <button id="btn-pass" class="action-btn">Pass (2 Tokens)</button>
+                <button id="btn-end-game" class="action-btn end-turn-btn" style="background: rgba(255,45,45,0.1); border-color: var(--red-glow); color: var(--red-glow);">End Game</button>
             </div>
 
             <div class="hand-area">
