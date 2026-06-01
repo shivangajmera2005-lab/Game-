@@ -15,7 +15,12 @@
               e.g. https://empire-climb.up.railway.app
     ═══════════════════════════════════════════════════════════ -->
     <script>
-        window.SOCKET_SERVER_URL = 'http://localhost:5931';
+        // Auto-detect server URL:
+        // On Railway → window.location.origin (same server handles everything)
+        // On localhost → use the local dev port
+        window.SOCKET_SERVER_URL = window.location.hostname === 'localhost'
+            ? 'http://localhost:5931'
+            : window.location.origin;
     </script>
 </head>
 
@@ -171,7 +176,6 @@
 
     <!-- Socket.IO client (CDN) -->
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"
-            integrity="sha384-2huIO7xT0D6RBnFEMNUMJCbEsekiF4bJLUKvCHYAidSdFiqtZExCN0hGRuHXqh8"
             crossorigin="anonymous"></script>
 
     <!-- Lobby client logic -->
