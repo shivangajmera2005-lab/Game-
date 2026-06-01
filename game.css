@@ -943,3 +943,217 @@
     border-radius: 0 4px 4px 0;
     margin-left: -8px;
 }
+
+/* ============================================================
+   MOBILE RESPONSIVE FIXES — Bid War & Defense Modal
+   Target: phones in landscape (= 768px height or = 850px width)
+   ============================================================ */
+
+/* --- PORTRAIT: force landscape rotation message --- */
+@media (max-width: 768px) and (orientation: portrait) {
+    .split-bid-overlay {
+        display: flex !important;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #000;
+    }
+    .split-bid-overlay .split-half,
+    .split-bid-overlay .lightning-divider,
+    .split-bid-overlay .bid-top-banner {
+        display: none !important;
+    }
+    .split-bid-overlay::before {
+        content: "? Rotate device to landscape to bid";
+        font-family: 'Orbitron', monospace;
+        font-size: 1rem;
+        color: var(--gold);
+        text-align: center;
+        padding: 24px;
+        letter-spacing: 0.1em;
+    }
+}
+
+/* --- LANDSCAPE PHONE: small-screen bid war layout --- */
+@media (max-width: 900px) and (orientation: landscape) {
+
+    /* Make the overlay scroll if needed */
+    .split-bid-overlay {
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    /* Compress top banner into single tight row */
+    .bid-top-banner {
+        padding: 6px 10px !important;
+        gap: 6px !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+    }
+    .bid-war-label {
+        font-size: 0.55rem !important;
+        letter-spacing: 0.12em !important;
+        white-space: nowrap;
+    }
+    .bid-segment-info-inline {
+        font-size: 0.72rem !important;
+        gap: 4px !important;
+    }
+    .bid-highest-wrap {
+        gap: 4px !important;
+    }
+    .bid-highest-label {
+        font-size: 0.5rem !important;
+    }
+    .bid-highest-value {
+        font-size: 0.95rem !important;
+    }
+    .bid-highest-leader {
+        font-size: 0.7rem !important;
+        max-width: 80px !important;
+    }
+
+    /* Shrink split halves padding drastically */
+    .split-half {
+        padding: 8px 10px !important;
+        justify-content: flex-start !important;
+    }
+
+    /* Account for banner height (~44px on mobile) */
+    .split-left,
+    .split-right {
+        padding-top: 52px !important;
+    }
+
+    /* Player info block: tighten */
+    .bid-player-info {
+        margin-bottom: 8px !important;
+    }
+    .bid-avatar {
+        width: 44px !important;
+        height: 44px !important;
+        font-size: 1rem !important;
+        margin-bottom: 6px !important;
+    }
+    .bid-name {
+        font-size: 0.9rem !important;
+    }
+    .bid-tokens-live {
+        font-size: 0.75rem !important;
+        margin-top: 4px !important;
+    }
+
+    /* Shrink card flip area */
+    .bid-card-flip-container {
+        width: 64px !important;
+        height: 86px !important;
+        margin: 0 auto 6px !important;
+    }
+    .bid-card-back {
+        font-size: 1.6rem !important;
+    }
+
+    /* Bid amount display */
+    .bid-amount-display {
+        font-size: 1.5rem !important;
+        margin: 8px 0 !important;
+        min-height: 36px !important;
+    }
+
+    /* Bid control buttons: compact */
+    .bid-controls-btn {
+        padding: 6px 10px !important;
+        font-size: 0.85rem !important;
+        margin: 0 2px !important;
+    }
+
+    /* Confirm & Fold buttons */
+    .confirm-bid-btn {
+        padding: 9px 18px !important;
+        font-size: 0.85rem !important;
+    }
+    .fold-bid-btn {
+        padding: 7px 18px !important;
+        font-size: 0.8rem !important;
+        margin-top: 5px !important;
+    }
+
+    /* "YOUR TURN TO BID" indicator */
+    .bid-active-indicator {
+        top: 52px !important;
+        font-size: 0.45rem !important;
+        padding: 4px 10px !important;
+        letter-spacing: 0.1em !important;
+    }
+
+    /* Timer ring: shrink for mobile */
+    .bid-timer-ring-wrap {
+        width: 52px !important;
+        height: 52px !important;
+    }
+    .bid-timer-num {
+        font-size: 0.8rem !important;
+    }
+    .bid-input-box {
+        margin-bottom: 6px !important;
+    }
+}
+
+/* --- VERY SMALL LANDSCAPE (e.g. iPhone SE / small Android) --- */
+@media (max-width: 680px) and (orientation: landscape) {
+    .bid-name { font-size: 0.75rem !important; }
+    .bid-avatar { width: 36px !important; height: 36px !important; }
+    .bid-amount-display { font-size: 1.2rem !important; }
+    .bid-controls-btn { padding: 5px 7px !important; font-size: 0.75rem !important; }
+    .confirm-bid-btn { padding: 7px 12px !important; font-size: 0.75rem !important; }
+    .fold-bid-btn { padding: 5px 12px !important; font-size: 0.72rem !important; }
+    .split-half { padding: 5px 6px !important; }
+    .split-left, .split-right { padding-top: 46px !important; }
+    .bid-card-flip-container { width: 52px !important; height: 70px !important; }
+    .bid-card-back { font-size: 1.2rem !important; }
+    .bid-top-banner { padding: 4px 8px !important; }
+    .bid-segment-info-inline { font-size: 0.62rem !important; }
+    .bid-highest-value { font-size: 0.8rem !important; }
+}
+
+/* ============================================================
+   MOBILE FIXES — Defense Modal
+   ============================================================ */
+@media (max-width: 900px) and (orientation: landscape) {
+    .defense-modal-overlay {
+        align-items: flex-start;
+        overflow-y: auto;
+    }
+    .defense-modal-inner {
+        padding: 14px 12px !important;
+        gap: 10px !important;
+        max-height: 100vh;
+        overflow-y: auto;
+    }
+    .defense-modal-title { font-size: 1rem !important; }
+    .defense-modal-subtitle { font-size: 0.8rem !important; }
+    .dmod-attacker-name { font-size: 1.1rem !important; }
+    .dmod-card-option {
+        width: 110px !important;
+        padding: 10px 8px !important;
+    }
+    .dmod-card-shield { font-size: 1.4rem !important; margin-bottom: 4px !important; }
+    .dmod-card-power-badge { font-size: 1rem !important; padding: 2px 8px !important; }
+    .defense-modal-skip-btn { padding: 10px 18px !important; font-size: 0.85rem !important; }
+}
+
+/* ============================================================
+   MOBILE FIXES — Toast Notifications
+   ============================================================ */
+@media (max-width: 768px) {
+    .toast-container {
+        bottom: 12px !important;
+        right: 8px !important;
+        left: 8px !important;
+        max-width: none !important;
+    }
+    .toast {
+        font-size: 0.82rem !important;
+        padding: 10px 12px !important;
+    }
+}

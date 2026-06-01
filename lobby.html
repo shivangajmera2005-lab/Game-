@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empire Climb — Multiplayer Lobby</title>
+    <link rel="icon" type="image/png" href="Pictures/ICON_IMAGE.PNG">
+    <link rel="stylesheet" href="lobby.css">
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SERVER CONFIGURATION
+         ─ Local dev:   leave as http://localhost:5931
+         ─ After Railway deploy: replace with your Railway URL
+              e.g. https://empire-climb.up.railway.app
+    ═══════════════════════════════════════════════════════════ -->
+    <script>
+        window.SOCKET_SERVER_URL = 'http://localhost:5931';
+    </script>
+</head>
+
+<body>
+    <!-- Particles background -->
+    <div id="particles"></div>
+
+    <!-- Connection status chip -->
+    <div class="connection-chip disconnected" id="conn-chip">
+        <div class="connection-dot"></div>
+        <span id="conn-label">CONNECTING</span>
+    </div>
+
+    <!-- ═══════════════ LOBBY PAGE ═══════════════ -->
+    <main class="lobby-page">
+
+        <div class="lobby-logo">⚔ EMPIRE CLIMB ⚔</div>
+        <div class="lobby-subtitle">Multiplayer · Rise · Conquer · Reign</div>
+
+        <!-- ─────────────────────────────────────────
+             STATE 1: ENTRY (Create / Join)
+        ───────────────────────────────────────── -->
+        <div class="lobby-state active" id="state-entry">
+            <div class="entry-grid">
+
+                <!-- CREATE ROOM card -->
+                <div class="entry-card card-create">
+                    <div class="entry-card-icon">👑</div>
+                    <div class="entry-card-title">Create Room</div>
+                    <div class="entry-card-desc">
+                        Start a new empire. Share the room code with your rivals.
+                    </div>
+
+                    <label class="lobby-label" for="create-name">Your Name</label>
+                    <input
+                        id="create-name"
+                        class="lobby-input"
+                        type="text"
+                        maxlength="18"
+                        placeholder="Enter your name…"
+                        autocomplete="off"
+                    >
+
+                    <button class="lobby-btn btn-create" id="btn-create">
+                        <div class="btn-spinner"></div>
+                        <span>⚡ CREATE ROOM</span>
+                    </button>
+                    <div class="lobby-error" id="create-error"></div>
+                </div>
+
+                <!-- JOIN ROOM card -->
+                <div class="entry-card card-join">
+                    <div class="entry-card-icon">🚩</div>
+                    <div class="entry-card-title">Join Room</div>
+                    <div class="entry-card-desc">
+                        Enter the 6-character room code from your host.
+                    </div>
+
+                    <label class="lobby-label" for="join-code">Room Code</label>
+                    <input
+                        id="join-code"
+                        class="lobby-input input-code"
+                        type="text"
+                        maxlength="6"
+                        placeholder="ABC123"
+                        autocomplete="off"
+                        spellcheck="false"
+                    >
+
+                    <label class="lobby-label" for="join-name">Your Name</label>
+                    <input
+                        id="join-name"
+                        class="lobby-input"
+                        type="text"
+                        maxlength="18"
+                        placeholder="Enter your name…"
+                        autocomplete="off"
+                    >
+
+                    <button class="lobby-btn btn-join" id="btn-join">
+                        <div class="btn-spinner"></div>
+                        <span>🚩 JOIN ROOM</span>
+                    </button>
+                    <div class="lobby-error" id="join-error"></div>
+                </div>
+
+            </div><!-- /entry-grid -->
+        </div><!-- /state-entry -->
+
+        <!-- ─────────────────────────────────────────
+             STATE 2: WAITING ROOM (Lobby)
+        ───────────────────────────────────────── -->
+        <div class="lobby-state" id="state-lobby">
+            <div class="lobby-room-wrap">
+
+                <!-- Room code display -->
+                <div class="room-code-section">
+                    <div class="room-code-label">🔑 Room Code — Share with Players</div>
+                    <div class="room-code-display" id="room-code-display">
+                        <!-- 6 .code-digit spans injected by JS -->
+                    </div>
+                    <button class="copy-code-btn" id="btn-copy-code">
+                        📋 Copy Code
+                    </button>
+                </div>
+
+                <!-- Player list -->
+                <div class="players-section-title">
+                    Players
+                    <span class="player-count-badge" id="player-count-badge">0 / 6</span>
+                </div>
+
+                <div class="players-list-lobby" id="players-list-lobby">
+                    <!-- Player slots injected by JS -->
+                </div>
+
+                <!-- Action area -->
+                <div class="lobby-action-area">
+
+                    <!-- HOST sees this -->
+                    <div id="host-controls" style="display:none; flex-direction:column; align-items:center; gap:10px;">
+                        <button class="lobby-btn btn-start" id="btn-start-game" disabled>
+                            ▶ START GAME
+                        </button>
+                        <div class="min-players-note" id="start-note">
+                            Need at least 3 players to start
+                        </div>
+                    </div>
+
+                    <!-- NON-HOST sees this -->
+                    <div class="waiting-message" id="guest-waiting" style="display:none;">
+                        <span>Waiting for host to start</span>
+                        <span class="waiting-dots">
+                            <span>·</span><span>·</span><span>·</span>
+                        </span>
+                    </div>
+
+                    <button class="leave-room-btn" id="btn-leave-room">← Leave Room</button>
+                </div>
+
+            </div><!-- /lobby-room-wrap -->
+        </div><!-- /state-lobby -->
+
+    </main><!-- /lobby-page -->
+
+    <!-- Socket.IO client (CDN) -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"
+            integrity="sha384-2huIO7xT0D6RBnFEMNUMJCbEsekiF4bJLUKvCHYAidSdFiqtZExCN0hGRuHXqh8"
+            crossorigin="anonymous"></script>
+
+    <!-- Lobby client logic -->
+    <script src="lobby.js"></script>
+</body>
+
+</html>

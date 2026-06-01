@@ -35,6 +35,31 @@
 
             <button id="begin-conquest-btn" class="begin-conquest-btn">BEGIN CONQUEST</button>
             <p class="players-footer">3 TO 6 PLAYERS REQUIRED TO RULE</p>
+
+            <!-- ── Multiplayer entry ───────────────────────────── -->
+            <div style="display:flex;align-items:center;gap:14px;margin:20px 0 10px;">
+                <div style="flex:1;height:1px;background:rgba(255,255,255,0.1);"></div>
+                <span style="font-family:'Orbitron',monospace;font-size:0.55rem;letter-spacing:0.2em;color:rgba(255,255,255,0.3);">OR</span>
+                <div style="flex:1;height:1px;background:rgba(255,255,255,0.1);"></div>
+            </div>
+            <button
+                id="multiplayer-btn"
+                onclick="window.location.href='lobby.html'"
+                style="
+                    width:100%;padding:13px 20px;border-radius:10px;
+                    background:rgba(0,170,255,0.08);border:1px solid rgba(0,170,255,0.4);
+                    color:#00AAFF;font-family:'Orbitron',monospace;font-size:0.72rem;
+                    font-weight:700;letter-spacing:0.18em;cursor:pointer;
+                    transition:all 0.2s ease;
+                "
+                onmouseover="this.style.background='rgba(0,170,255,0.16)';this.style.boxShadow='0 0 24px rgba(0,170,255,0.25)'"
+                onmouseout="this.style.background='rgba(0,170,255,0.08)';this.style.boxShadow='none'"
+            >
+                ⚡ MULTIPLAYER — ONLINE LOBBY
+            </button>
+            <p style="font-family:'Rajdhani',sans-serif;font-size:0.78rem;color:rgba(255,255,255,0.3);text-align:center;margin-top:8px;">
+                Play with friends over the internet
+            </p>
         </div>
     </div>
     <script src="players.js"></script>
