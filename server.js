@@ -86,6 +86,7 @@ function publicPlayers(room) {
         name:      p.name,
         color:     p.color,
         isHost:    p.socketId === room.hostId,
+        ready:     p.ready || false,
     }));
 }
 
@@ -125,6 +126,7 @@ io.on('connection', (socket) => {
             name,
             color:     COLORS[0],
             isHost:    true,
+            ready:     false,
         };
 
         rooms[code] = {
@@ -173,6 +175,7 @@ io.on('connection', (socket) => {
             name,
             color:     COLORS[numericId - 1],
             isHost:    false,
+            ready:     false,
         };
 
         room.players.push(player);
@@ -186,10 +189,48 @@ io.on('connection', (socket) => {
             isHost:   false,
         });
 
-        // Tell everyone else in the room about the updated list
-        socket.to(code).emit('player-list-updated', {
-            players: publicPlayers(room),
+        // Notify other clients in the room
+        socket.to(code).emit('playerJoined', { name: player.name });
+
+        // Update all clients with the new lobby state
+        io.to(code).emit('lobbyUpdated', {
+            roomCode: code,
+            players:  publicPlayers(room),
         });
+    });
+
+    // ── PLAYER READY ───────────────────────────────────────────────
+    socket.on('playerReady', ({ roomCode }) => {
+        const code = (roomCode || '').trim().toUpperCase();
+        const room = rooms[code];
+        if (!room) return;
+
+        const player = room.players.find(p => p.socketId === socket.id);
+        if (player) {
+            player.ready = true;
+            console.log(`[room] ${code} player "${player.name}" is READY`);
+            io.to(code).emit('lobbyUpdated', {
+                roomCode: code,
+                players:  publicPlayers(room),
+            });
+        }
+    });
+
+    // ── PLAYER NOT READY ───────────────────────────────────────────
+    socket.on('playerNotReady', ({ roomCode }) => {
+        const code = (roomCode || '').trim().toUpperCase();
+        const room = rooms[code];
+        if (!room) return;
+
+        const player = room.players.find(p => p.socketId === socket.id);
+        if (player) {
+            player.ready = false;
+            console.log(`[room] ${code} player "${player.name}" is NOT READY`);
+            io.to(code).emit('lobbyUpdated', {
+                roomCode: code,
+                players:  publicPlayers(room),
+            });
+        }
     });
 
     // ── START GAME ─────────────────────────────────────────────────
@@ -205,6 +246,11 @@ io.on('connection', (socket) => {
         }
         if (room.players.length < 3) {
             return socket.emit('error', { message: 'Need at least 3 players to start.' });
+        }
+        // Server-side validation: all players must be ready
+        const allReady = room.players.every(p => p.ready);
+        if (!allReady) {
+            return socket.emit('error', { message: 'All players must be ready to start the game.' });
         }
         if (room.started) {
             return socket.emit('error', { message: 'Game already started.' });
@@ -224,7 +270,7 @@ io.on('connection', (socket) => {
             bankrupt: false,
         }));
 
-        io.to(code).emit('game-starting', { players: gamePlayers });
+        io.to(code).emit('gameStarting', { players: gamePlayers });
     });
 
     // ── DISCONNECT ─────────────────────────────────────────────────
@@ -235,6 +281,7 @@ io.on('connection', (socket) => {
         if (!room) return;
 
         const code = room.code;
+        const leavingPlayer = room.players.find(p => p.socketId === socket.id);
 
         // Remove this player
         room.players = room.players.filter(p => p.socketId !== socket.id);
@@ -249,14 +296,21 @@ io.on('connection', (socket) => {
         // Re-assign numeric IDs after removal (keeps order clean)
         room.players.forEach((p, i) => { p.numericId = i + 1; p.color = COLORS[i]; });
 
+        // Notify other clients about the departure
+        if (leavingPlayer) {
+            socket.to(code).emit('playerLeft', { name: leavingPlayer.name });
+        }
+
         // If host left, give host to next player in line
         if (room.hostId === socket.id) {
             room.hostId = room.players[0].socketId;
             console.log(`[room] ${code} new host: "${room.players[0].name}"`);
+            io.to(code).emit('hostChanged', { hostName: room.players[0].name });
         }
 
-        // Broadcast updated list to remaining players
-        io.to(code).emit('player-list-updated', {
+        // Broadcast updated state to remaining players
+        io.to(code).emit('lobbyUpdated', {
+            roomCode: code,
             players: publicPlayers(room),
         });
     });

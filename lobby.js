@@ -13,6 +13,7 @@
     let currentRoomCode = null;
     let isHost          = false;
     let myPlayerName    = '';
+    let myReadyStatus   = false;
 
     // ── Socket connection ────────────────────────────────────────────
     const socket = io(SERVER_URL, {
@@ -22,33 +23,36 @@
     });
 
     // ── DOM refs ─────────────────────────────────────────────────────
-    const connChip      = document.getElementById('conn-chip');
-    const connLabel     = document.getElementById('conn-label');
+    const connChip       = document.getElementById('conn-chip');
+    const connLabel      = document.getElementById('conn-label');
 
-    const stateEntry    = document.getElementById('state-entry');
-    const stateLobby    = document.getElementById('state-lobby');
+    const stateEntry     = document.getElementById('state-entry');
+    const stateLobby     = document.getElementById('state-lobby');
 
-    const createNameEl  = document.getElementById('create-name');
-    const joinCodeEl    = document.getElementById('join-code');
-    const joinNameEl    = document.getElementById('join-name');
+    const createNameEl   = document.getElementById('create-name');
+    const joinCodeEl     = document.getElementById('join-code');
+    const joinNameEl     = document.getElementById('join-name');
 
-    const btnCreate     = document.getElementById('btn-create');
-    const btnJoin       = document.getElementById('btn-join');
+    const btnCreate      = document.getElementById('btn-create');
+    const btnJoin        = document.getElementById('btn-join');
 
-    const createErrEl   = document.getElementById('create-error');
-    const joinErrEl     = document.getElementById('join-error');
+    const createErrEl    = document.getElementById('create-error');
+    const joinErrEl      = document.getElementById('join-error');
 
-    const codeDisplayEl = document.getElementById('room-code-display');
-    const countBadgeEl  = document.getElementById('player-count-badge');
-    const playersListEl = document.getElementById('players-list-lobby');
+    const codeDisplayEl  = document.getElementById('room-code-display');
+    const countBadgeEl   = document.getElementById('player-count-badge');
+    const playersListEl  = document.getElementById('players-list-lobby');
 
-    const hostControls  = document.getElementById('host-controls');
-    const guestWaiting  = document.getElementById('guest-waiting');
-    const btnStartGame  = document.getElementById('btn-start-game');
-    const startNote     = document.getElementById('start-note');
+    const hostControls   = document.getElementById('host-controls');
+    const guestWaiting   = document.getElementById('guest-waiting');
+    const btnStartGame   = document.getElementById('btn-start-game');
+    const startNote      = document.getElementById('start-note');
 
-    const btnCopyCode   = document.getElementById('btn-copy-code');
-    const btnLeaveRoom  = document.getElementById('btn-leave-room');
+    const btnCopyCode    = document.getElementById('btn-copy-code');
+    const btnLeaveRoom   = document.getElementById('btn-leave-room');
+    
+    const btnReadyToggle = document.getElementById('btn-ready-toggle');
+    const toastContainer = document.getElementById('lobby-toast-container');
 
     // ── Helpers ──────────────────────────────────────────────────────
 
@@ -74,6 +78,37 @@
         if (stateName === 'lobby')  stateLobby.classList.add('active');
     }
 
+    // ── Premium Floating Toast Alert ──────────────────────────────────
+    function showToast(message, type = 'info') {
+        if (!toastContainer) return;
+        const toast = document.createElement('div');
+        toast.className = `lobby-toast ${type}`;
+        
+        let icon = 'ℹ️';
+        if (type === 'success') icon = '✔';
+        if (type === 'error')   icon = '❌';
+        if (type === 'warning') icon = '👑';
+        
+        toast.innerHTML = `<span>${icon}</span> <span>${escapeHtml(message)}</span>`;
+        toastContainer.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 3900);
+    }
+
+    // ── Ready button toggler style ────────────────────────────────────
+    function updateReadyButtonUI(ready) {
+        if (!btnReadyToggle) return;
+        if (ready) {
+            btnReadyToggle.classList.add('ready-active');
+            btnReadyToggle.innerHTML = '✔ READY';
+        } else {
+            btnReadyToggle.classList.remove('ready-active');
+            btnReadyToggle.innerHTML = '⚡ MARK READY';
+        }
+    }
+
     // ── Room code display ─────────────────────────────────────────────
     function renderRoomCode(code) {
         codeDisplayEl.innerHTML = '';
@@ -94,14 +129,23 @@
         players.forEach(p => {
             const slot = document.createElement('div');
             slot.className = 'player-slot' + (p.isHost ? ' is-host' : '');
+            
+            // Visual indicator for ready status beside name
+            const readyIndicator = p.ready 
+                ? `<span style="color:var(--green-glow); margin-right: 8px; font-weight: bold; text-shadow: 0 0 10px var(--green-glow)">✔</span>`
+                : `<span style="color:var(--red-glow); margin-right: 8px; text-shadow: 0 0 10px var(--red-glow)">●</span>`;
+            
+            const badgeClass = p.isHost ? 'badge-host' : (p.ready ? 'badge-ready' : 'badge-not-ready');
+            const badgeText = p.isHost ? '👑 HOST' : (p.ready ? 'READY' : 'NOT READY');
+
             slot.innerHTML = `
                 <div class="player-slot-avatar"
                      style="border-color:${p.color};color:${p.color};background:${p.color}18;">
                     ${getInitials(p.name)}
                 </div>
-                <div class="player-slot-name">${escapeHtml(p.name)}</div>
-                <div class="player-slot-badge ${p.isHost ? 'badge-host' : 'badge-ready'}">
-                    ${p.isHost ? '👑 HOST' : 'READY'}
+                <div class="player-slot-name">${readyIndicator}${escapeHtml(p.name)}</div>
+                <div class="player-slot-badge ${badgeClass}">
+                    ${badgeText}
                 </div>
             `;
             playersListEl.appendChild(slot);
@@ -119,13 +163,22 @@
             playersListEl.appendChild(empty);
         }
 
-        // Update start button state (host only, needs ≥ 3)
+        // Update start button state (host only, needs ≥ 3 and all ready)
         if (isHost) {
-            const canStart = players.length >= 3;
+            const minPlayersMet = players.length >= 3;
+            const allReady = players.every(p => p.ready);
+            const canStart = minPlayersMet && allReady;
+            
             btnStartGame.disabled = !canStart;
-            startNote.textContent = canStart
-                ? `${players.length} player${players.length > 1 ? 's' : ''} ready — good to go!`
-                : `Need at least 3 players to start (${players.length}/3)`;
+            
+            if (!minPlayersMet) {
+                startNote.textContent = `Need at least 3 players to start (${players.length}/3)`;
+            } else if (!allReady) {
+                const unreadyCount = players.filter(p => !p.ready).length;
+                startNote.textContent = `Waiting for ${unreadyCount} player${unreadyCount > 1 ? 's' : ''} to be ready`;
+            } else {
+                startNote.textContent = `All players ready — ready to start!`;
+            }
         }
     }
 
@@ -145,6 +198,8 @@
     function enterLobby(roomCode, players, amIHost) {
         currentRoomCode = roomCode;
         isHost = amIHost;
+        myReadyStatus = false;
+        updateReadyButtonUI(false);
 
         renderRoomCode(roomCode);
         renderPlayers(players);
@@ -200,9 +255,9 @@
         connLabel.textContent = 'DISCONNECTED';
         console.log('[lobby] disconnected from server');
 
-        // If we were in a lobby, show a notice (but don't forcibly leave)
+        // If we were in a lobby, show a notice
         if (currentRoomCode) {
-            showError(document.createElement('div'), 'Connection lost. Attempting to reconnect…');
+            showToast('Connection lost. Reconnecting…', 'error');
         }
     });
 
@@ -215,6 +270,7 @@
     socket.on('room-created', ({ roomCode, players, isHost: amIHost }) => {
         setLoading(btnCreate, false);
         enterLobby(roomCode, players, amIHost);
+        showToast('Empire room created!', 'success');
         console.log(`[lobby] room created: ${roomCode}`);
     });
 
@@ -223,23 +279,53 @@
         setLoading(btnJoin, false);
         clearError(joinErrEl);
         enterLobby(roomCode, players, amIHost);
+        showToast(`Entered Room ${roomCode}!`, 'success');
         console.log(`[lobby] joined room: ${roomCode}`);
     });
 
-    // ── Someone joined / left — update list in real time ─────────────
-    socket.on('player-list-updated', ({ players }) => {
+    // ── Lobby state updated ──────────────────────────────────────────
+    socket.on('lobbyUpdated', ({ roomCode, players }) => {
+        // Find myself in the players list to keep local ready state in sync
+        const me = players.find(p => p.name === myPlayerName);
+        if (me) {
+            myReadyStatus = me.ready;
+            updateReadyButtonUI(myReadyStatus);
+        }
+        
         renderPlayers(players);
     });
 
-    // ── Game is starting — save to localStorage & redirect ────────────
-    socket.on('game-starting', ({ players }) => {
+    // ── Real-time peer status alerts ─────────────────────────────────
+    socket.on('playerJoined', ({ name }) => {
+        showToast(`${name} joined the room!`, 'info');
+    });
+
+    socket.on('playerLeft', ({ name }) => {
+        showToast(`${name} left the room.`, 'error');
+    });
+
+    socket.on('hostChanged', ({ hostName }) => {
+        showToast(`${hostName} is now the host!`, 'warning');
+        
+        // Host reassignment check
+        if (myPlayerName === hostName) {
+            isHost = true;
+            hostControls.style.display = 'flex';
+            guestWaiting.style.display = 'none';
+        }
+    });
+
+    // ── Game is starting ──────────────────────────────────────────────
+    socket.on('gameStarting', ({ players }) => {
+        showToast('Entering the battlefield! Prepare to rise...', 'success');
+        
         // Write player data in the exact format game.js expects
         localStorage.setItem('empireClimbPlayers', JSON.stringify(players));
 
         // Small delay so all animations can settle
         setTimeout(() => {
             window.location.href = 'game.html';
-        }, 300);
+        }, 1200);
     });
 
     // ── Server-side error ─────────────────────────────────────────────
@@ -249,9 +335,10 @@
 
         // Show the error in whichever panel triggered it
         if (currentRoomCode === null) {
-            // We're still on the entry screen — figure out which panel
             const lastAction = btnCreate.disabled ? 'create' : 'join';
             showError(lastAction === 'create' ? createErrEl : joinErrEl, message);
+        } else {
+            showToast(message, 'error');
         }
         console.warn('[lobby] server error:', message);
     });
@@ -259,6 +346,19 @@
     // ═══════════════════════════════════════════════════════════════
     //  UI EVENT LISTENERS
     // ═══════════════════════════════════════════════════════════════
+
+    // ── Toggle Ready Status ───────────────────────────────────────────
+    btnReadyToggle.addEventListener('click', () => {
+        if (!currentRoomCode) return;
+        myReadyStatus = !myReadyStatus;
+        updateReadyButtonUI(myReadyStatus);
+        
+        if (myReadyStatus) {
+            socket.emit('playerReady', { roomCode: currentRoomCode });
+        } else {
+            socket.emit('playerNotReady', { roomCode: currentRoomCode });
+        }
+    });
 
     // ── Create Room ───────────────────────────────────────────────────
     btnCreate.addEventListener('click', () => {
@@ -332,23 +432,21 @@
                 btnCopyCode.classList.remove('copied');
             }, 2000);
         }).catch(() => {
-            // Fallback for browsers that block clipboard
             window.prompt('Copy this room code:', currentRoomCode);
         });
     });
 
     // ── Leave Room ────────────────────────────────────────────────────
     btnLeaveRoom.addEventListener('click', () => {
-        // Disconnecting removes the player server-side (disconnect handler)
         socket.disconnect();
         currentRoomCode = null;
         isHost = false;
-        createNameEl.value = myPlayerName; // pre-fill name for convenience
+        myReadyStatus = false;
+        createNameEl.value = myPlayerName; 
         joinNameEl.value   = myPlayerName;
         clearError(createErrEl);
         clearError(joinErrEl);
         showState('entry');
-        // Reconnect so they can create/join again
         socket.connect();
     });
 
