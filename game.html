@@ -165,22 +165,73 @@
         </div>
     </div>
 
+    <!-- Defense Selection Modal -->
+    <div id="defense-modal" class="defense-modal-overlay">
+        <div class="defense-modal-inner">
+            <!-- Attacker info banner -->
+            <div class="defense-modal-attacker-banner" id="dmod-attacker-banner">
+                <div class="dmod-attacker-label">⚔️ INCOMING ATTACK</div>
+                <div class="dmod-attacker-name" id="dmod-attacker-name">Attacker</div>
+            </div>
+
+            <!-- Attack card info -->
+            <div class="defense-modal-attack-card" id="dmod-attack-card">
+                <div class="dmod-attack-card-name" id="dmod-attack-card-name">ATTACK</div>
+                <div class="dmod-attack-card-power" id="dmod-attack-card-power">Power: 0</div>
+                <div class="dmod-attack-card-desc" id="dmod-attack-card-desc">Description</div>
+            </div>
+
+            <h2 class="defense-modal-title" id="dmod-title">Choose Your Defense</h2>
+            <p class="defense-modal-subtitle" id="dmod-subtitle">Select a defense card from your hand, or take the hit.</p>
+
+            <!-- Defense card grid -->
+            <div class="defense-modal-cards" id="dmod-cards"></div>
+
+            <!-- Skip button -->
+            <button id="btn-dmod-skip" class="defense-modal-skip-btn">🛡️ No Defense — Take the Hit</button>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
     <!-- Split Screen Bidding Overlay -->
     <div id="split-bid-overlay" class="split-bid-overlay">
-        <div class="bid-segment-info">
-            <div style="font-family: 'Orbitron', monospace; font-size: 0.8rem; color: var(--gold); letter-spacing: 2px; margin-bottom: 5px;">BIDDING WAR</div>
-            <div id="bid-segment-name" style="font-size: 1.2rem; font-weight: bold;">Segment Name</div>
-            <div id="bid-segment-status" style="font-size: 0.8rem; color: var(--text-dim);">Status</div>
-        </div>
-        
-        <div class="lightning-divider" id="lightning-divider">
-            <div class="lightning-bolt"></div>
+
+        <!-- Top center: Segment info + highest bid -->
+        <div class="bid-top-banner">
+            <div class="bid-war-label">⚔️ BIDDING WAR</div>
+            <div class="bid-segment-info-inline">
+                <span id="bid-segment-name">Segment Name</span>
+                <span class="bid-seg-divider">•</span>
+                <span id="bid-segment-status" style="color: var(--text-dim); font-size:0.85em;">Status</span>
+            </div>
+            <div class="bid-highest-wrap">
+                <span class="bid-highest-label">HIGHEST BID</span>
+                <span class="bid-highest-value" id="bid-highest-value">0</span>
+                <span class="bid-highest-leader" id="bid-highest-leader">—</span>
+            </div>
         </div>
 
+        <!-- Center divider (lightning line only) -->
+        <div class="lightning-divider" id="lightning-divider"></div>
+
+        <!-- Countdown timer — separate from divider so crackle doesn't affect it -->
+        <div class="bid-timer-ring-wrap" id="bid-timer-wrap">
+            <svg class="bid-timer-svg" viewBox="0 0 80 80" width="80" height="80">
+                <circle class="bid-timer-track" cx="40" cy="40" r="34"/>
+                <circle class="bid-timer-fill" id="bid-timer-circle" cx="40" cy="40" r="34"/>
+            </svg>
+            <div class="bid-timer-num" id="bid-timer-num">30</div>
+        </div>
+
+        <!-- Result overlay -->
         <div class="bid-result-text" id="bid-result-text">SEGMENT CAPTURED</div>
         <button class="bid-continue-btn" id="btn-bid-continue">CONTINUE</button>
 
+        <!-- Left Player -->
         <div class="split-half split-left" id="bid-left-side">
+            <div class="bid-active-indicator" id="bid-left-active-indicator">YOUR TURN TO BID</div>
             <div class="bid-player-info">
                 <div class="bid-avatar" id="bid-left-avatar" style="color: white; font-family: 'Orbitron', monospace;">P1</div>
                 <div class="bid-name" id="bid-left-name">Player 1</div>
@@ -202,7 +253,7 @@
 
             <div class="bid-input-box" id="bid-left-controls">
                 <div class="bid-amount-display" id="bid-left-total">0</div>
-                <div style="display: flex; gap: 5px; justify-content: center; margin-bottom: 20px;">
+                <div style="display: flex; gap: 5px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap;">
                     <button class="bid-controls-btn left-add" data-val="1">+1</button>
                     <button class="bid-controls-btn left-add" data-val="2">+2</button>
                     <button class="bid-controls-btn left-add" data-val="3">+3</button>
@@ -210,10 +261,13 @@
                     <button class="bid-controls-btn left-add" data-val="-1" style="background: rgba(255,45,45,0.2); border-color: var(--red-glow); color: var(--red-glow);">-1</button>
                 </div>
                 <button class="confirm-bid-btn" id="btn-left-confirm">CONFIRM BID</button>
+                <button class="fold-bid-btn" id="btn-left-fold">FOLD</button>
             </div>
         </div>
 
+        <!-- Right Player -->
         <div class="split-half split-right" id="bid-right-side">
+            <div class="bid-active-indicator" id="bid-right-active-indicator">YOUR TURN TO BID</div>
             <div class="bid-player-info">
                 <div class="bid-avatar" id="bid-right-avatar" style="color: white; font-family: 'Orbitron', monospace;">P2</div>
                 <div class="bid-name" id="bid-right-name">Player 2</div>
@@ -235,7 +289,7 @@
 
             <div class="bid-input-box" id="bid-right-controls">
                 <div class="bid-amount-display" id="bid-right-total">0</div>
-                <div style="display: flex; gap: 5px; justify-content: center; margin-bottom: 20px;">
+                <div style="display: flex; gap: 5px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap;">
                     <button class="bid-controls-btn right-add" data-val="1">+1</button>
                     <button class="bid-controls-btn right-add" data-val="2">+2</button>
                     <button class="bid-controls-btn right-add" data-val="3">+3</button>
@@ -243,6 +297,7 @@
                     <button class="bid-controls-btn right-add" data-val="-1" style="background: rgba(255,45,45,0.2); border-color: var(--red-glow); color: var(--red-glow);">-1</button>
                 </div>
                 <button class="confirm-bid-btn" id="btn-right-confirm">CONFIRM BID</button>
+                <button class="fold-bid-btn" id="btn-right-fold">FOLD</button>
             </div>
         </div>
     </div>

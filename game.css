@@ -1,3 +1,6 @@
+/* ============================================================
+   GAME LAYOUT
+   ============================================================ */
 .game-container {
     display: grid;
     grid-template-columns: 300px 1fr 300px;
@@ -7,6 +10,12 @@
     position: relative;
     z-index: 2;
     overflow: hidden;
+}
+
+/* Lock board interaction during modals */
+.game-container.board-locked {
+    pointer-events: none;
+    user-select: none;
 }
 
 .sidebar {
@@ -731,4 +740,206 @@
     font-family: 'Rajdhani', sans-serif;
     font-weight: bold;
     display: none;
+}
+
+/* ============================================================
+   DEFENSE SELECTION MODAL
+   ============================================================ */
+.defense-modal-overlay {
+    position: fixed; inset: 0; z-index: 11000;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.92); backdrop-filter: blur(16px);
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+}
+.defense-modal-overlay.visible { opacity: 1; pointer-events: auto; }
+.defense-modal-inner {
+    background: linear-gradient(145deg, #0d0d1a, #1a0a0a);
+    border: 1px solid rgba(255,45,45,0.5); border-radius: 20px;
+    padding: 36px; max-width: 860px; width: 92%; max-height: 90vh; overflow-y: auto;
+    display: flex; flex-direction: column; align-items: center; gap: 20px;
+    box-shadow: 0 0 60px rgba(255,45,45,0.25);
+    transform: scale(0.92) translateY(20px);
+    transition: transform 0.35s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+.defense-modal-overlay.visible .defense-modal-inner { transform: scale(1) translateY(0); }
+.defense-modal-attacker-banner {
+    width: 100%; background: rgba(255,45,45,0.12);
+    border: 1px solid rgba(255,45,45,0.4); border-radius: 10px;
+    padding: 14px 24px; text-align: center;
+}
+.dmod-attacker-label { font-family:'Orbitron',monospace; font-size:0.7rem; color:var(--red-glow); letter-spacing:0.25em; text-transform:uppercase; margin-bottom:4px; }
+.dmod-attacker-name { font-family:'Cinzel',serif; font-size:1.6rem; font-weight:700; color:white; }
+.defense-modal-attack-card {
+    background: rgba(255,45,45,0.08); border: 1px solid rgba(255,45,45,0.35);
+    border-radius: 12px; padding: 16px 28px; text-align: center; width: 100%; max-width: 420px;
+}
+.dmod-attack-card-name { font-family:'Orbitron',monospace; font-size:1.1rem; font-weight:700; color:var(--red-glow); letter-spacing:0.1em; margin-bottom:4px; }
+.dmod-attack-card-power { font-family:'Rajdhani',sans-serif; font-size:1.4rem; font-weight:700; color:white; margin-bottom:4px; }
+.dmod-attack-card-desc { font-size:0.8rem; color:var(--text-dim); line-height:1.4; }
+.defense-modal-title { font-family:'Cinzel Decorative',serif; font-size:1.5rem; color:var(--gold); text-align:center; margin:0; }
+.defense-modal-subtitle { font-family:'Rajdhani',sans-serif; font-size:1rem; color:var(--text-dim); text-align:center; margin:0; }
+.defense-modal-cards { display:flex; flex-wrap:wrap; gap:14px; justify-content:center; width:100%; }
+.dmod-card-option {
+    background: linear-gradient(145deg,#111120,#1a1a2e);
+    border: 2px solid rgba(0,200,130,0.5); border-radius:12px;
+    padding: 18px 16px; width:160px; cursor:pointer; text-align:center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    position: relative; overflow: hidden;
+}
+.dmod-card-option:hover { transform:translateY(-6px) scale(1.03); box-shadow:0 12px 30px rgba(0,255,136,0.3); border-color:rgba(0,255,136,0.9); }
+.dmod-card-shield { font-size:2rem; margin-bottom:8px; }
+.dmod-card-name { font-family:'Orbitron',monospace; font-size:0.62rem; color:#00FF88; letter-spacing:0.08em; margin-bottom:6px; text-transform:uppercase; }
+.dmod-card-power-badge { font-family:'Orbitron',monospace; font-size:1.3rem; font-weight:700; color:white; background:rgba(0,255,136,0.15); border-radius:8px; padding:4px 12px; display:inline-block; margin-bottom:6px; }
+.dmod-card-desc { font-size:0.7rem; color:var(--text-dim); line-height:1.3; }
+.dmod-no-defense { text-align:center; padding:24px; color:var(--text-dim); font-family:'Rajdhani',sans-serif; font-size:1.1rem; }
+.dmod-no-defense .dmod-no-def-icon { font-size:3rem; display:block; margin-bottom:12px; opacity:0.5; }
+.defense-modal-skip-btn {
+    background: rgba(255,45,45,0.12); border: 1px solid rgba(255,45,45,0.45);
+    color: var(--red-glow); padding:14px 32px; border-radius:8px;
+    font-family:'Rajdhani',sans-serif; font-size:1rem; font-weight:600; cursor:pointer;
+    letter-spacing:0.05em; transition: background 0.2s, box-shadow 0.2s; margin-top:4px;
+}
+.defense-modal-skip-btn:hover { background:rgba(255,45,45,0.28); box-shadow:0 0 16px rgba(255,45,45,0.3); }
+
+/* ============================================================
+   BID WAR ENHANCEMENTS
+   ============================================================ */
+.bid-top-banner {
+    position:absolute; top:0; left:0; right:0; z-index:20;
+    background:rgba(0,0,0,0.88); border-bottom:1px solid rgba(255,215,0,0.3);
+    padding:12px 24px; display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;
+}
+.bid-war-label { font-family:'Orbitron',monospace; font-size:0.72rem; color:var(--gold); letter-spacing:0.25em; white-space:nowrap; }
+.bid-segment-info-inline { font-family:'Cinzel',serif; font-size:1rem; font-weight:700; color:white; display:flex; align-items:center; gap:8px; }
+.bid-seg-divider { color:var(--text-dim); }
+.bid-highest-wrap { display:flex; align-items:center; gap:8px; font-family:'Orbitron',monospace; }
+.bid-highest-label { font-size:0.62rem; color:var(--text-dim); letter-spacing:0.1em; }
+.bid-highest-value { font-size:1.4rem; font-weight:700; color:var(--gold); }
+.bid-highest-value.bump { animation:valueBump 0.4s ease; }
+@keyframes valueBump { 0%{transform:scale(1)} 50%{transform:scale(1.4);color:#00FF88} 100%{transform:scale(1)} }
+.bid-highest-leader { font-family:'Rajdhani',sans-serif; font-size:0.95rem; color:#aaa; max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+.bid-timer-ring-wrap { position:relative; width:80px; height:80px; background:rgba(0,0,0,0.9); border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid rgba(255,255,255,0.1); }
+.bid-timer-svg { position:absolute; inset:0; transform:rotate(-90deg); }
+.bid-timer-track { fill:transparent; stroke:rgba(255,255,255,0.1); stroke-width:5; }
+.bid-timer-fill { fill:transparent; stroke:#00FF88; stroke-width:5; stroke-linecap:round; stroke-dasharray:213.6; stroke-dashoffset:0; transition:stroke-dashoffset 1s linear, stroke 0.5s ease; }
+.bid-timer-fill.urgent { stroke:var(--red-glow); animation:timerUrgentPulse 0.5s infinite alternate; }
+@keyframes timerUrgentPulse { from{opacity:1} to{opacity:0.35} }
+.bid-timer-num { font-family:'Orbitron',monospace; font-size:1.1rem; font-weight:700; color:white; z-index:1; position:relative; }
+
+.bid-active-indicator { position:absolute; top:80px; left:50%; transform:translateX(-50%); background:rgba(0,255,136,0.15); border:1px solid #00FF88; color:#00FF88; font-family:'Orbitron',monospace; font-size:0.62rem; letter-spacing:0.18em; padding:6px 16px; border-radius:20px; white-space:nowrap; opacity:0; transition:opacity 0.3s ease; pointer-events:none; z-index:5; }
+.bid-active-indicator.active { opacity:1; animation:indicatorPulse 1.2s infinite; }
+@keyframes indicatorPulse { 0%,100%{box-shadow:0 0 8px rgba(0,255,136,0.35)} 50%{box-shadow:0 0 20px rgba(0,255,136,0.75)} }
+
+.fold-bid-btn { margin-top:10px; padding:12px 30px; font-size:0.95rem; background:rgba(255,45,45,0.1); border:1px solid var(--red-glow); color:var(--red-glow); cursor:pointer; border-radius:5px; font-family:'Rajdhani',sans-serif; font-weight:700; letter-spacing:0.08em; transition:background 0.2s,box-shadow 0.2s; display:block; width:100%; }
+.fold-bid-btn:hover:not(:disabled) { background:rgba(255,45,45,0.25); box-shadow:0 0 15px rgba(255,45,45,0.3); }
+.fold-bid-btn:disabled { opacity:0.3; cursor:not-allowed; }
+.split-half.turn-inactive { filter:brightness(0.4) grayscale(40%); pointer-events:none; }
+.split-half { transition:filter 0.4s ease; }
+.split-left, .split-right { padding-top:100px; }
+
+/* ============================================================
+   TOAST NOTIFICATIONS
+   ============================================================ */
+.toast-container { position:fixed; bottom:24px; right:24px; z-index:99999; display:flex; flex-direction:column; gap:10px; pointer-events:none; max-width:340px; }
+.toast { background:rgba(12,12,22,0.96); backdrop-filter:blur(12px); border-radius:10px; padding:14px 18px; font-family:'Rajdhani',sans-serif; font-size:0.95rem; color:white; box-shadow:0 4px 24px rgba(0,0,0,0.5); border-left:4px solid var(--gold); animation:toastSlideIn 0.35s cubic-bezier(0.175,0.885,0.32,1.275) forwards; display:flex; align-items:flex-start; gap:10px; line-height:1.4; }
+.toast.toast-attack  { border-color:var(--red-glow); }
+.toast.toast-defense { border-color:#00FF88; }
+.toast.toast-bid     { border-color:var(--gold); }
+.toast.toast-win     { border-color:#00FF88; }
+.toast.toast-info    { border-color:var(--blue-glow); }
+.toast-icon  { font-size:1.2rem; flex-shrink:0; margin-top:1px; }
+.toast-body  { flex:1; }
+.toast-title { font-weight:700; font-size:0.9rem; margin-bottom:2px; }
+.toast-msg   { color:#aaa; font-size:0.85rem; }
+@keyframes toastSlideIn { from{transform:translateX(120%);opacity:0} to{transform:translateX(0);opacity:1} }
+.toast.toast-exit { animation:toastSlideOut 0.3s ease forwards; }
+@keyframes toastSlideOut { from{transform:translateX(0);opacity:1} to{transform:translateX(120%);opacity:0} }
+
+@media (max-width:1024px) and (orientation:landscape) {
+    .defense-modal-inner  { padding:20px; gap:14px; }
+    .defense-modal-title  { font-size:1.1rem; }
+    .dmod-card-option     { width:130px; padding:14px 10px; }
+    .bid-top-banner       { padding:8px 14px; gap:10px; }
+    .bid-highest-value    { font-size:1.1rem; }
+    .split-left,.split-right { padding-top:90px; }
+    .bid-timer-ring-wrap  { width:60px; height:60px; }
+    .bid-timer-num        { font-size:0.9rem; }
+    .bid-active-indicator { top:72px; font-size:0.55rem; padding:5px 12px; }
+}
+
+
+/* ============================================================
+   TIMER RING FIX — overrides previous declaration
+   Positioned absolutely, centred on the divider, immune to crackle
+   ============================================================ */
+.bid-timer-ring-wrap {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 90px !important;
+    height: 90px !important;
+    background: rgba(4, 4, 14, 0.97) !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 2px solid rgba(255,255,255,0.15) !important;
+    box-shadow: 0 0 24px rgba(0,0,0,0.9), 0 0 0 3px rgba(0,0,0,0.6) !important;
+    z-index: 15 !important;
+    animation: none !important;
+}
+
+/* SVG fills the wrap perfectly */
+.bid-timer-svg {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    transform: rotate(-90deg) !important;
+    animation: none !important;
+}
+
+/* Number centred over svg */
+.bid-timer-num {
+    position: relative !important;
+    z-index: 2 !important;
+    font-family: 'Orbitron', monospace !important;
+    font-size: 1.15rem !important;
+    font-weight: 700 !important;
+    color: white !important;
+    animation: none !important;
+    user-select: none;
+}
+
+/* Keep crackle ONLY on the line itself, not its children */
+.lightning-divider {
+    display: block !important;     /* not flex — timer is a sibling now */
+    pointer-events: none !important;
+}
+
+/* Timer circumference: 2 * PI * 34 = 213.63 */
+.bid-timer-fill {
+    stroke-dasharray: 213.6 !important;
+}
+
+/* Mobile override for timer */
+@media (max-width: 1024px) and (orientation: landscape) {
+    .bid-timer-ring-wrap {
+        width: 64px !important;
+        height: 64px !important;
+    }
+    .bid-timer-num { font-size: 0.85rem !important; }
+}
+
+/* ============================================================
+   CHRONICLE — info log entry style
+   ============================================================ */
+.log-entry:has(span[style*='blue-glow']) {
+    border-left: 3px solid var(--blue-glow);
+    padding-left: 8px;
+    background: rgba(0, 170, 255, 0.05);
+    border-radius: 0 4px 4px 0;
+    margin-left: -8px;
 }

@@ -1,4 +1,4 @@
-// Game Engine
+﻿// Game Engine
 
 const segmentCosts = { 1: 0, 2: 3, 3: 5, 4: 8 };
 let players = [];
@@ -525,7 +525,7 @@ if(btnEndGame) {
 
 function executeAttackSteal(attacker, defender, segment, id) {
     if (attacker.flags <= 0) {
-        alert("You don't have enough flags to hold more territory.");
+        showToast('info', 'No Flags', "You don't have enough flags to hold more territory.");
         return;
     }
     attacker.flags -= 1;
@@ -538,144 +538,358 @@ function executeAttackSteal(attacker, defender, segment, id) {
     }
 }
 
-function attemptAttack(attackerId, defenderId, attackPower, attackCardName, onSuccess) {
-    const defender = players.find(p => p.id === defenderId);
-    if (!defender) { onSuccess(); return; }
-
-    const validDefenses = defender.hand.filter(c => c.type === 'defence' && c.power >= attackPower);
-    if (validDefenses.length > 0) {
-        validDefenses.sort((a,b) => a.power - b.power);
-        const bestDef = validDefenses[0];
-        
-        const useDef = confirm(`[DEFENSE CHECK] ${defender.name}, you are attacked by ${attackCardName} (Power ${attackPower}). You have ${bestDef.name}. Use it to block?`);
-        if (useDef) {
-            const handIdx = defender.hand.indexOf(bestDef);
-            defender.hand.splice(handIdx, 1);
-            logAction(`<strong>${defender.name}</strong> played ${bestDef.name} and successfully blocked the attack from ${players.find(p => p.id === attackerId).name}!`);
-            return;
-        }
+// -- Toast / Chronicle notification helper ----------------------
+function showToast(type, title, msg, duration = 4000) {
+    // INFO messages go into the CHRONICLE log � not a floating popup
+    if (type === 'info') {
+        logAction(`<span style="display:inline-flex;align-items:center;gap:6px;color:var(--blue-glow);"><span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--blue-glow);color:#000;font-size:0.65rem;font-weight:900;font-family:serif;flex-shrink:0;">i</span> <strong>${title}:</strong></span> <span style="color:#bbb;">${msg}</span>`);
+        return;
     }
-    onSuccess();
+    // attack / defense / bid / win ? floating toast
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const icons = { attack:'<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--red-glow);color:#fff;font-size:0.65rem;font-weight:900;flex-shrink:0;font-family:sans-serif;">!</span>', defense:'<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#00FF88;color:#000;font-size:0.65rem;font-weight:900;flex-shrink:0;font-family:sans-serif;">S</span>', bid:'<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--gold);color:#000;font-size:0.65rem;font-weight:900;flex-shrink:0;font-family:sans-serif;">B</span>', win:'<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--gold);color:#000;font-size:0.65rem;font-weight:900;flex-shrink:0;font-family:sans-serif;">W</span>' };
+    const t = document.createElement('div');
+    t.className = `toast toast-${type}`;
+    t.innerHTML = `<span class="toast-icon">${icons[type]||'<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#555;color:#fff;font-size:0.65rem;font-weight:900;flex-shrink:0;font-family:sans-serif;">?</span>'}</span><div class="toast-body"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div>`;
+    container.appendChild(t);
+    setTimeout(() => {
+        t.classList.add('toast-exit');
+        setTimeout(() => t.remove(), 320);
+    }, duration);
+}
+
+// ── Defense Selection Modal ─────────────────────────────────────
+function openDefenseModal(attackerId, defender, attackPower, attackCardName, attackCardDesc) {
+    return new Promise(resolve => {
+        const modal   = document.getElementById('defense-modal');
+        const cardsEl = document.getElementById('dmod-cards');
+        const skipBtn = document.getElementById('btn-dmod-skip');
+        const attacker = players.find(p => p.id === attackerId);
+
+        // Populate header
+        document.getElementById('dmod-attacker-name').textContent   = attacker ? attacker.name : 'Attacker';
+        document.getElementById('dmod-attack-card-name').textContent = attackCardName;
+        document.getElementById('dmod-attack-card-power').textContent= `Power: ${attackPower}`;
+        document.getElementById('dmod-attack-card-desc').textContent = attackCardDesc || '';
+
+        // Find valid defenses
+        const validDefenses = defender.hand
+            .map((c, idx) => ({ card: c, idx }))
+            .filter(({ card }) => card.type === 'defence' && card.power >= attackPower);
+
+        cardsEl.innerHTML = '';
+
+        if (validDefenses.length === 0) {
+            document.getElementById('dmod-title').textContent    = 'No Defense Available';
+            document.getElementById('dmod-subtitle').textContent = `${defender.name} has no cards strong enough to block this attack.`;
+            cardsEl.innerHTML = `<div class="dmod-no-defense"><span class="dmod-no-def-icon">💀</span>Hand has no defense cards with Power ≥ ${attackPower}.</div>`;
+        } else {
+            document.getElementById('dmod-title').textContent    = `${defender.name} — Choose Your Defense`;
+            document.getElementById('dmod-subtitle').textContent = `Select a defense card to block the ${attackCardName} (Power ${attackPower})`;
+            validDefenses.forEach(({ card, idx }) => {
+                const el = document.createElement('div');
+                el.className = 'dmod-card-option';
+                el.innerHTML = `<div class="dmod-card-shield">🛡️</div><div class="dmod-card-name">${card.name}</div><div class="dmod-card-power-badge">${card.power}</div><div class="dmod-card-desc">${card.desc}</div>`;
+                el.addEventListener('click', () => {
+                    defender.hand.splice(idx, 1);
+                    const attackerName = attacker ? attacker.name : 'attacker';
+                    logAction(`<strong>${defender.name}</strong> played a Defense Card (Power ${card.power}) and blocked the ${attackCardName} from ${attackerName}!`);
+                    showToast('defense', 'Attack Blocked!', `${defender.name} used a Defense Card (Power ${card.power}).`);
+                    cleanup();
+                    resolve(true); // blocked
+                });
+                cardsEl.appendChild(el);
+            });
+        }
+
+        const handleSkip = () => { cleanup(); resolve(false); };
+        skipBtn.addEventListener('click', handleSkip);
+
+        function cleanup() {
+            skipBtn.removeEventListener('click', handleSkip);
+            modal.classList.remove('visible');
+        }
+
+        modal.classList.add('visible');
+    });
+}
+
+async function attemptAttackAsync(attackerId, defenderId, attackPower, attackCardName, attackCardDesc) {
+    const defender = players.find(p => p.id === defenderId);
+    if (!defender) return false; // not blocked
+    const attacker = players.find(p => p.id === attackerId);
+    showToast('attack', 'Incoming Attack!', `${attacker ? attacker.name : '?'} used ${attackCardName} (Power ${attackPower}) on ${defender.name}!`);
+    const blocked = await openDefenseModal(attackerId, defender, attackPower, attackCardName, attackCardDesc);
+    return blocked;
+}
+
+// ── Enhanced Bid War (split-screen overlay) ─────────────────────
+let bidTimerInterval = null;
+
+function stopBidTimer() {
+    if (bidTimerInterval) { clearInterval(bidTimerInterval); bidTimerInterval = null; }
+}
+
+function startBidTimer(seconds, onExpire) {
+    stopBidTimer();
+    const numEl    = document.getElementById('bid-timer-num');
+    const fillEl   = document.getElementById('bid-timer-circle');
+    const circumf  = 213.6;
+    let remaining  = seconds;
+
+    function tick() {
+        if (numEl)  numEl.textContent = remaining;
+        if (fillEl) {
+            fillEl.style.strokeDashoffset = circumf * (1 - remaining / seconds);
+            fillEl.classList.toggle('urgent', remaining <= 8);
+        }
+        if (remaining <= 0) { stopBidTimer(); onExpire(); return; }
+        remaining--;
+    }
+    tick();
+    bidTimerInterval = setInterval(tick, 1000);
+}
+
+function updateBidHighest(amount, leaderName) {
+    const valEl    = document.getElementById('bid-highest-value');
+    const leaderEl = document.getElementById('bid-highest-leader');
+    if (valEl)    { valEl.textContent = amount; valEl.classList.remove('bump'); void valEl.offsetWidth; valEl.classList.add('bump'); }
+    if (leaderEl)  leaderEl.textContent = leaderName ? `— ${leaderName}` : '—';
+}
+
+function setBidTurnSide(activeSide) {
+    // activeSide: 'left' | 'right' | null
+    const leftH  = document.getElementById('bid-left-side');
+    const rightH = document.getElementById('bid-right-side');
+    const leftI  = document.getElementById('bid-left-active-indicator');
+    const rightI = document.getElementById('bid-right-active-indicator');
+    if (!leftH || !rightH) return;
+    leftH.classList.toggle('turn-inactive',  activeSide !== 'left');
+    rightH.classList.toggle('turn-inactive', activeSide !== 'right');
+    if (leftI)  leftI.classList.toggle('active',  activeSide === 'left');
+    if (rightI) rightI.classList.toggle('active', activeSide === 'right');
+}
+
+function openSplitBidOverlay(leftPlayer, rightPlayer, segmentName, segmentStatus) {
+    const overlay = document.getElementById('split-bid-overlay');
+    // Segment info
+    const snEl = document.getElementById('bid-segment-name');
+    const ssEl = document.getElementById('bid-segment-status');
+    if (snEl) snEl.textContent = segmentName;
+    if (ssEl) ssEl.textContent = segmentStatus || '';
+    // Left player
+    const laEl = document.getElementById('bid-left-avatar');
+    const lnEl = document.getElementById('bid-left-name');
+    const ltEl = document.getElementById('bid-left-tokens-live');
+    if (laEl) { laEl.textContent = leftPlayer.name.charAt(0); laEl.style.background = leftPlayer.color; laEl.style.borderColor = leftPlayer.color; }
+    if (lnEl) lnEl.textContent = leftPlayer.name;
+    if (ltEl) ltEl.textContent = `Tokens: ${leftPlayer.tokens}`;
+    // Right player
+    const raEl = document.getElementById('bid-right-avatar');
+    const rnEl = document.getElementById('bid-right-name');
+    const rtEl = document.getElementById('bid-right-tokens-live');
+    if (raEl) { raEl.textContent = rightPlayer.name.charAt(0); raEl.style.background = rightPlayer.color; raEl.style.borderColor = rightPlayer.color; }
+    if (rnEl) rnEl.textContent = rightPlayer.name;
+    if (rtEl) rtEl.textContent = `Tokens: ${rightPlayer.tokens}`;
+    // Reset totals & bid displays
+    ['bid-left-total','bid-right-total'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent='0'; });
+    updateBidHighest(0, null);
+    // Hide result/continue
+    const resultEl = document.getElementById('bid-result-text');
+    const contBtn  = document.getElementById('btn-bid-continue');
+    if (resultEl) { resultEl.style.display='none'; resultEl.className='bid-result-text'; }
+    if (contBtn)  contBtn.style.display = 'none';
+    // Lock flippers
+    ['bid-left-flipper','bid-right-flipper'].forEach(id => { const el=document.getElementById(id); if(el) el.classList.remove('flipped'); });
+    // Lock board
+    document.querySelector('.game-container')?.classList.add('board-locked');
+    overlay.style.display = 'flex';
+    showToast('bid', 'Bidding War!', `${leftPlayer.name} vs ${rightPlayer.name} for ${segmentName}`);
+}
+
+function closeSplitBidOverlay() {
+    stopBidTimer();
+    const overlay = document.getElementById('split-bid-overlay');
+    if (overlay) overlay.style.display = 'none';
+    document.querySelector('.game-container')?.classList.remove('board-locked');
+    setBidTurnSide(null);
 }
 
 async function executeBiddingWar(challenger, defender, segment, segEl, onComplete) {
-    let currentBid = 0;
-    let activeBidder = challenger;
-    let inactiveBidder = defender;
-    let folded = false;
+    const segName   = segEl.innerText.split('\n')[0].trim();
+    const segStatus = `Challenger: ${challenger.name}`;
+
+    // Challenger = left, defender = right
+    openSplitBidOverlay(challenger, defender, segName, segStatus);
+
+    let currentBid   = 0;
     let highestBidder = null;
+    let activeBidder  = challenger;   // challenger goes first
+    let inactiveBidder= defender;
+    let activeSide    = 'left';
+    let resolved      = false;
 
-    while (!folded) {
-        let title = "Bidding War";
-        let desc = `Enter a bid higher than ${currentBid} to win ${segEl.innerText.split('\n')[0].trim()}. (You must keep 3 tokens)`;
-        
-        let newBid = await openBidModal(activeBidder, currentBid, false, title, desc, 0);
-        
-        if (newBid === null) {
-            folded = true;
-            highestBidder = inactiveBidder;
-            alert(`${activeBidder.name} folded! ${highestBidder.name} wins the bid.`);
-            break;
-        }
-        
-        currentBid = newBid;
-        
-        let temp = activeBidder;
-        activeBidder = inactiveBidder;
-        inactiveBidder = temp;
+    // Wire add-buttons for both sides
+    let leftBid  = 0;
+    let rightBid = 0;
+
+    const leftTotalEl  = document.getElementById('bid-left-total');
+    const rightTotalEl = document.getElementById('bid-right-total');
+    const leftTokenEl  = document.getElementById('bid-left-tokens-live');
+    const rightTokenEl = document.getElementById('bid-right-tokens-live');
+
+    function refreshAddButtons(side, bidder, myBid) {
+        document.querySelectorAll(`.${side}-add`).forEach(btn => {
+            const v = parseInt(btn.getAttribute('data-val'), 10);
+            btn.disabled = (v < 0 && myBid + v < 0) || (bidder.tokens - (myBid + v) < 3);
+        });
+        const confirmBtn = document.getElementById(`btn-${side}-confirm`);
+        if (confirmBtn) confirmBtn.disabled = myBid <= currentBid;
     }
 
-    if (highestBidder === challenger) {
-        challenger.tokens -= currentBid;
-        logAction(`<strong>${challenger.name}</strong> won the bidding war with ${currentBid} tokens and stole the segment!`);
-        executeAttackSteal(challenger, defender, segment, segEl.getAttribute('data-id'));
-    } else {
-        defender.tokens -= currentBid;
-        logAction(`<strong>${defender.name}</strong> won the bidding war with ${currentBid} tokens and successfully defended their segment!`);
-    }
-    onComplete();
-}
-
-function openBidModal(bidder, currentHighestBid, isSecret, title, desc, extraFee = 0) {
-    return new Promise((resolve) => {
-        const modal = document.getElementById('bid-modal');
-        const titleEl = document.getElementById('bid-title');
-        const descEl = document.getElementById('bid-desc');
-        const currentDisplay = document.getElementById('bid-current-display');
-        const currentVal = document.getElementById('bid-current-val');
-        const totalEl = document.getElementById('bid-total');
-        const foldBtn = document.getElementById('btn-bid-fold');
-        const submitBtn = document.getElementById('btn-bid-submit');
-        const addBtns = document.querySelectorAll('.bid-add-btn');
-
-        titleEl.innerText = title;
-        descEl.innerHTML = `<strong>${bidder.name}</strong><br>${desc}`;
-        
-        let accumulatedBid = 0;
-        
-        if (isSecret) {
-            currentDisplay.style.display = 'none';
+    function addBidAmount(side, val) {
+        if (side === 'left') {
+            leftBid  = Math.max(0, leftBid + val);
+            if (leftTotalEl) leftTotalEl.textContent = leftBid;
+            refreshAddButtons('left', challenger, leftBid);
         } else {
-            currentDisplay.style.display = 'block';
-            currentVal.innerText = currentHighestBid;
-            accumulatedBid = currentHighestBid; // start from current bid
+            rightBid = Math.max(0, rightBid + val);
+            if (rightTotalEl) rightTotalEl.textContent = rightBid;
+            refreshAddButtons('right', defender, rightBid);
         }
-        
-        totalEl.innerText = accumulatedBid;
-        
-        function updateButtons() {
-            addBtns.forEach(btn => {
-                const val = parseInt(btn.getAttribute('data-val'), 10);
-                // Must keep 3 tokens. Cost is bid + extraFee.
-                if (bidder.tokens - (accumulatedBid + val + extraFee) < 3) {
-                    btn.disabled = true;
-                } else {
-                    btn.disabled = false;
-                }
-            });
-            // Can only submit if bid > currentHighestBid (unless secret, then any bid >=0)
-            if (!isSecret && accumulatedBid <= currentHighestBid) {
-                submitBtn.disabled = true;
-                submitBtn.style.opacity = '0.5';
-            } else {
-                submitBtn.disabled = false;
-                submitBtn.style.opacity = '1';
-            }
+    }
+
+    // Add-btn handlers
+    const leftAddBtns  = document.querySelectorAll('.left-add');
+    const rightAddBtns = document.querySelectorAll('.right-add');
+    const leftAddH  = e => addBidAmount('left',  parseInt(e.target.getAttribute('data-val'),10));
+    const rightAddH = e => addBidAmount('right', parseInt(e.target.getAttribute('data-val'),10));
+    leftAddBtns.forEach(b  => b.addEventListener('click', leftAddH));
+    rightAddBtns.forEach(b => b.addEventListener('click', rightAddH));
+
+    function cleanup() {
+        leftAddBtns.forEach(b  => b.removeEventListener('click', leftAddH));
+        rightAddBtns.forEach(b => b.removeEventListener('click', rightAddH));
+    }
+
+    function setActiveSideUI() {
+        setBidTurnSide(activeSide);
+        // Reset that side's local bid to just above current
+        if (activeSide === 'left') {
+            leftBid = currentBid;
+            if (leftTotalEl) leftTotalEl.textContent = leftBid;
+            if (leftTokenEl)  leftTokenEl.textContent = `Tokens: ${challenger.tokens}`;
+            refreshAddButtons('left', challenger, leftBid);
+        } else {
+            rightBid = currentBid;
+            if (rightTotalEl) rightTotalEl.textContent = rightBid;
+            if (rightTokenEl)  rightTokenEl.textContent = `Tokens: ${defender.tokens}`;
+            refreshAddButtons('right', defender, rightBid);
         }
+    }
 
-        const handleAdd = (e) => {
-            const val = parseInt(e.target.getAttribute('data-val'), 10);
-            accumulatedBid += val;
-            totalEl.innerText = accumulatedBid;
-            updateButtons();
-        };
+    function doResolve(winner, loser, winBid, winSide, defWin) {
+        if (resolved) return;
+        resolved = true;
+        cleanup();
+        stopBidTimer();
 
-        const handleFold = () => {
-            cleanup();
-            resolve(null);
-        };
+        if (winner === challenger) {
+            challenger.tokens -= winBid;
+            logAction(`<strong>${challenger.name}</strong> won the bid war with ${winBid} tokens and stole ${segName}!`);
+            showToast('win', 'Bid War Won!', `${challenger.name} stole ${segName} for ${winBid} tokens.`);
+            executeAttackSteal(challenger, defender, segment, segEl.getAttribute('data-id'));
+        } else {
+            defender.tokens -= winBid;
+            logAction(`<strong>${defender.name}</strong> won the bid war with ${winBid} tokens and defended ${segName}!`);
+            showToast('win', 'Defense Successful!', `${defender.name} defended ${segName} for ${winBid} tokens.`);
+        }
+        // Update token displays
+        if (leftTokenEl)  leftTokenEl.textContent  = `Tokens: ${challenger.tokens}`;
+        if (rightTokenEl) rightTokenEl.textContent = `Tokens: ${defender.tokens}`;
 
-        const handleSubmit = () => {
-            if (!submitBtn.disabled) {
-                cleanup();
-                resolve(accumulatedBid);
-            }
-        };
+        // Flip winner's card
+        const winFlipper = document.getElementById(winSide === 'left' ? 'bid-left-flipper' : 'bid-right-flipper');
+        const winReveal  = document.getElementById(winSide === 'left' ? 'bid-left-reveal' : 'bid-right-reveal');
+        if (winReveal)  winReveal.textContent = winBid;
+        if (winFlipper) winFlipper.classList.add('flipped');
 
-        const cleanup = () => {
-            addBtns.forEach(b => b.removeEventListener('click', handleAdd));
-            foldBtn.removeEventListener('click', handleFold);
-            submitBtn.removeEventListener('click', handleSubmit);
-            modal.style.display = 'none';
-        };
+        const resultEl = document.getElementById('bid-result-text');
+        const contBtn  = document.getElementById('btn-bid-continue');
+        if (resultEl) {
+            resultEl.textContent = defWin ? 'SEGMENT DEFENDED' : 'SEGMENT CAPTURED';
+            resultEl.className   = `bid-result-text ${defWin ? 'defended' : 'win'}`;
+            resultEl.style.display = 'block';
+        }
+        if (contBtn) {
+            contBtn.style.display = 'block';
+            const contH = () => { contBtn.style.display='none'; contBtn.removeEventListener('click',contH); closeSplitBidOverlay(); onComplete(); };
+            contBtn.addEventListener('click', contH);
+        } else {
+            setTimeout(() => { closeSplitBidOverlay(); onComplete(); }, 2500);
+        }
+    }
 
-        addBtns.forEach(b => b.addEventListener('click', handleAdd));
-        foldBtn.addEventListener('click', handleFold);
-        submitBtn.addEventListener('click', handleSubmit);
+    function onTimerExpire() {
+        if (resolved) return;
+        // Current active bidder auto-folds
+        logAction(`⏱️ Time expired! <strong>${activeBidder.name}</strong> auto-folded.`);
+        showToast('info', 'Time Up!', `${activeBidder.name} ran out of time and folded.`);
+        const winner    = inactiveBidder;
+        const winSide   = activeSide === 'left' ? 'right' : 'left';
+        doResolve(winner, activeBidder, currentBid, winSide, winner === defender);
+    }
 
-        updateButtons();
-        modal.style.display = 'flex';
-    });
+    // Confirm handlers
+    const leftConfirmBtn  = document.getElementById('btn-left-confirm');
+    const rightConfirmBtn = document.getElementById('btn-right-confirm');
+    const leftFoldBtn     = document.getElementById('btn-left-fold');
+    const rightFoldBtn    = document.getElementById('btn-right-fold');
+
+    const leftConfirmH = () => {
+        if (activeSide !== 'left' || resolved) return;
+        if (leftBid <= currentBid) return;
+        currentBid = leftBid;
+        updateBidHighest(currentBid, challenger.name);
+        logAction(`<strong>${challenger.name}</strong> bids ${currentBid} tokens.`);
+        showToast('bid', 'New Bid!', `${challenger.name} bids ${currentBid} tokens.`);
+        activeBidder   = defender;   inactiveBidder = challenger;
+        activeSide     = 'right';
+        setActiveSideUI();
+        startBidTimer(30, onTimerExpire);
+    };
+    const rightConfirmH = () => {
+        if (activeSide !== 'right' || resolved) return;
+        if (rightBid <= currentBid) return;
+        currentBid = rightBid;
+        updateBidHighest(currentBid, defender.name);
+        logAction(`<strong>${defender.name}</strong> bids ${currentBid} tokens.`);
+        showToast('bid', 'New Bid!', `${defender.name} bids ${currentBid} tokens.`);
+        activeBidder   = challenger; inactiveBidder = defender;
+        activeSide     = 'left';
+        setActiveSideUI();
+        startBidTimer(30, onTimerExpire);
+    };
+    const leftFoldH = () => {
+        if (activeSide !== 'left' || resolved) return;
+        logAction(`<strong>${challenger.name}</strong> folded the bid.`);
+        doResolve(defender, challenger, currentBid, 'right', true);
+    };
+    const rightFoldH = () => {
+        if (activeSide !== 'right' || resolved) return;
+        logAction(`<strong>${defender.name}</strong> folded the bid.`);
+        doResolve(challenger, defender, currentBid, 'left', false);
+    };
+
+    if (leftConfirmBtn)  leftConfirmBtn.addEventListener('click',  leftConfirmH);
+    if (rightConfirmBtn) rightConfirmBtn.addEventListener('click', rightConfirmH);
+    if (leftFoldBtn)     leftFoldBtn.addEventListener('click',     leftFoldH);
+    if (rightFoldBtn)    rightFoldBtn.addEventListener('click',    rightFoldH);
+
+    // Start — challenger goes first
+    setActiveSideUI();
+    startBidTimer(30, onTimerExpire);
 }
 
 function playCard(handIdx) {
@@ -683,11 +897,11 @@ function playCard(handIdx) {
     const card = cp.hand[handIdx];
     
     if (card.type === 'claim') {
-        alert(`To use ${card.name}, click on a segment of the corresponding level.`);
+        showToast('info', 'Claim Card', `Click a Level ${card.level || '?'} segment on the board to use ${card.name}.`);
         return;
     }
     if (card.type === 'defence') {
-        alert(`Defense cards cannot be played manually. They are automatically checked when you are attacked.`);
+        showToast('info', 'Defense Card', 'Defense cards activate automatically when you are attacked.');
         return;
     }
     if (card.type === 'attack') {
@@ -695,12 +909,11 @@ function playCard(handIdx) {
             resolveCopycat(handIdx);
             return;
         }
-        
         // Enter targeting mode
         targetingMode = { cardIdx: handIdx, card: card, targets: [] };
         document.body.classList.add('targeting-active');
         logAction(`<em>${cp.name} is targeting with ${card.name}...</em>`);
-        alert(`Select target(s) on the board for ${card.name}.`);
+        showToast('attack', 'Targeting Mode', `Select a segment on the board for ${card.name}.`);
         return;
     }
 }
@@ -729,159 +942,183 @@ function wasteCard(handIdx) {
     endTurn();
 }
 
-function resolveCopycat(handIdx) {
+async function resolveCopycat(handIdx) {
     const cp = players[currentPlayerIndex];
     if (!lastAction) {
-        alert("No previous action to copy!");
+        showToast('info', 'No Action', 'No previous action to copy!');
         return;
     }
-    
-    // Copycat acts as Power 2 attack automatically
     let power = 2;
     cp.hand.splice(handIdx, 1);
     logAction(`<strong>${cp.name}</strong> played COPYCAT! Mirroring the last action...`);
     
     if (lastAction.type === 'claim') {
         const targetSeg = board[lastAction.segmentId];
-        if (targetSeg) {
-            attemptAttack(cp.id, targetSeg.owner, power, 'COPYCAT', () => {
-                executeAttackSteal(cp, players.find(p => p.id === targetSeg.owner), targetSeg, lastAction.segmentId);
-            });
+        if (targetSeg && targetSeg.owner !== null) {
+            const blocked = await attemptAttackAsync(cp.id, targetSeg.owner, power, 'COPYCAT', 'Mirrors the previous action.');
+            if (!blocked) executeAttackSteal(cp, players.find(p => p.id === targetSeg.owner), targetSeg, lastAction.segmentId);
         }
     } else if (lastAction.type === 'attack') {
-        // Just repeat the attack if it's a simple target attack
         if (lastAction.targetId) {
             const targetSeg = board[lastAction.targetId];
-            if(targetSeg && targetSeg.owner !== null) {
-                attemptAttack(cp.id, targetSeg.owner, power, 'COPYCAT', () => {
-                     executeAttackSteal(cp, players.find(p => p.id === targetSeg.owner), targetSeg, lastAction.targetId);
-                });
+            if (targetSeg && targetSeg.owner !== null) {
+                const blocked = await attemptAttackAsync(cp.id, targetSeg.owner, power, 'COPYCAT', 'Mirrors the previous action.');
+                if (!blocked) executeAttackSteal(cp, players.find(p => p.id === targetSeg.owner), targetSeg, lastAction.targetId);
             } else {
-                 logAction(`Target segment is already empty. Copycat fails.`);
+                logAction('Target segment is already empty. Copycat fails.');
             }
         }
     }
+    updateUI();
     endTurn();
 }
 
-function handleTargetingClick(id, segment, segEl) {
+// Pay-or-lose modal for ATTACK card defense
+function openPayOrLoseModal(defender, cost, segmentName, onPay, onLose) {
+    return new Promise(resolve => {
+        const modal = document.getElementById('defense-modal');
+        const cardsEl = document.getElementById('dmod-cards');
+        const skipBtn = document.getElementById('btn-dmod-skip');
+
+        document.getElementById('dmod-attacker-name').textContent    = 'ATTACK';
+        document.getElementById('dmod-attack-card-name').textContent  = 'Segment Under Attack';
+        document.getElementById('dmod-attack-card-power').textContent = `Cost to Hold: ${cost} tokens`;
+        document.getElementById('dmod-attack-card-desc').textContent  = segmentName;
+        document.getElementById('dmod-title').textContent    = `${defender.name} — Pay or Surrender?`;
+        document.getElementById('dmod-subtitle').textContent = `Pay ${cost} tokens to keep ${segmentName}, or surrender it.`;
+
+        cardsEl.innerHTML = '';
+        const canPay = defender.tokens - cost >= 3;
+        if (canPay) {
+            const payEl = document.createElement('div');
+            payEl.className = 'dmod-card-option';
+            payEl.innerHTML = `<div class="dmod-card-shield">💰</div><div class="dmod-card-name">Pay to Hold</div><div class="dmod-card-power-badge">${cost}</div><div class="dmod-card-desc">Spend ${cost} tokens to keep the segment.</div>`;
+            payEl.addEventListener('click', () => { cleanup(); onPay(); resolve(); });
+            cardsEl.appendChild(payEl);
+        }
+        skipBtn.textContent = '🏳️ Surrender — Give up the segment';
+        const handleSkip = () => { cleanup(); onLose(); resolve(); };
+        skipBtn.addEventListener('click', handleSkip);
+
+        function cleanup() {
+            skipBtn.removeEventListener('click', handleSkip);
+            skipBtn.textContent = '🛡️ No Defense — Take the Hit';
+            modal.classList.remove('visible');
+        }
+        modal.classList.add('visible');
+    });
+}
+
+async function handleTargetingClick(id, segment, segEl) {
     const cp = players[currentPlayerIndex];
     const card = targetingMode.card;
     const handIdx = targetingMode.cardIdx;
     
     const finish = () => {
         cp.hand.splice(handIdx, 1);
-        lastAction = { type: 'attack', targetId: id }; // Basic tracking
+        lastAction = { type: 'attack', targetId: id };
         cancelTargeting();
+        updateUI();
         endTurn();
     };
 
     if (card.name === 'ATTACK') {
-        if (segment.owner === null || segment.owner === cp.id) return alert("Must target an opponent's segment.");
-        
-        attemptAttack(cp.id, segment.owner, card.power, card.name, () => {
-            const defender = players.find(p => p.id === segment.owner);
-            if (defender.tokens >= 3) {
-                const pay = confirm(`[ATTACK] ${defender.name}, pay 3 extra tokens to defend your segment ${segEl.innerText.split('\n')[0].trim()}?`);
-                if (pay) {
-                    if (defender.tokens - 3 < 3) {
-                        alert("Not enough tokens to defend (must keep 3)!");
-                        executeAttackSteal(cp, defender, segment, id);
-                    } else {
-                        defender.tokens -= 3;
-                        logAction(`${defender.name} paid 3 tokens to hold their ground against ATTACK!`);
-                    }
-                } else {
+        if (segment.owner === null || segment.owner === cp.id) { showToast('info','Invalid Target',"Must target an opponent's segment."); return; }
+        const defender = players.find(p => p.id === segment.owner);
+        const blocked = await attemptAttackAsync(cp.id, defender.id, card.power, card.name, card.desc);
+        if (!blocked) {
+            // Defender must pay 3 tokens or lose segment
+            if (defender.tokens - 3 >= 3) {
+                // Show a confirm-style choice via a mini toast + prompt handled inline
+                // We'll auto-resolve: defender pays if they can afford it, otherwise loses segment
+                // For pass-and-play, show defense-payment modal inline
+                await openPayOrLoseModal(defender, 3, segEl.innerText.split('\n')[0].trim(), () => {
+                    defender.tokens -= 3;
+                    logAction(`${defender.name} paid 3 tokens to hold their ground against ATTACK!`);
+                    showToast('defense','Segment Held!',`${defender.name} paid 3 tokens to hold the segment.`);
+                }, () => {
                     executeAttackSteal(cp, defender, segment, id);
-                }
+                });
             } else {
                 executeAttackSteal(cp, defender, segment, id);
             }
-        });
+        }
         finish();
     }
     
     else if (card.name === 'SEGMENT STEAL') {
-        if (segment.owner !== null) return alert("Must target an UNCAPTURED segment.");
+        if (segment.owner !== null) { showToast('info','Invalid Target','Must target an UNCAPTURED segment.'); return; }
         let cpLvl = getHighestSegmentLevel(cp.id);
         if (cpLvl === 0) cpLvl = 1;
         if (segment.level !== cpLvl && segment.level !== cpLvl + 1) {
-            return alert(`Must target a segment on your level (${cpLvl}) or one above (${cpLvl+1}).`);
+            showToast('info','Invalid Target',`Must target Level ${cpLvl} or Level ${cpLvl+1}.`);
+            return;
         }
         executeAttackSteal(cp, null, segment, id);
         finish();
     }
     
     else if (card.name === 'DISRUPT') {
-        if (segment.owner === null || segment.owner === cp.id) return alert("Must target an opponent's segment.");
+        if (segment.owner === null || segment.owner === cp.id) { showToast('info','Invalid Target',"Must target an opponent's segment."); return; }
         const defender = players.find(p => p.id === segment.owner);
-        attemptAttack(cp.id, defender.id, card.power, card.name, () => {
+        const blocked = await attemptAttackAsync(cp.id, defender.id, card.power, card.name, card.desc);
+        if (!blocked) {
             let maxLvl = getHighestSegmentLevel(defender.id);
             let dropped = 0;
             Object.keys(board).forEach(sid => {
-                if(board[sid].owner === defender.id && board[sid].level === maxLvl) {
-                    board[sid].owner = null;
-                    board[sid].power = 0;
-                    dropped++;
+                if (board[sid].owner === defender.id && board[sid].level === maxLvl) {
+                    board[sid].owner = null; board[sid].power = 0; dropped++;
                 }
             });
-            logAction(`<strong>${cp.name}</strong> used DISRUPT! ${defender.name} lost all ${dropped} segments on Level ${maxLvl} and fell down the pyramid!`);
-        });
+            logAction(`<strong>${cp.name}</strong> used DISRUPT! ${defender.name} lost all ${dropped} segments on Level ${maxLvl}!`);
+            showToast('attack','DISRUPT!',`${defender.name} lost ${dropped} Level ${maxLvl} segment(s)!`);
+        }
         finish();
     }
     
     else if (card.name === 'BID') {
-        if (segment.owner === null || segment.owner === cp.id) return alert("Must target an opponent's segment.");
+        if (segment.owner === null || segment.owner === cp.id) { showToast('info','Invalid Target',"Must target an opponent's segment."); return; }
         const defender = players.find(p => p.id === segment.owner);
-        attemptAttack(cp.id, defender.id, card.power, card.name, () => {
-            executeBiddingWar(cp, defender, segment, segEl, finish);
-        });
-        // Note: finish is called by executeBiddingWar
+        const blocked = await attemptAttackAsync(cp.id, defender.id, card.power, card.name, card.desc);
+        if (!blocked) {
+            await new Promise(res => executeBiddingWar(cp, defender, segment, segEl, res));
+        }
+        finish();
     }
     
     else if (card.name === 'COMPETITIVE STRIKE') {
-        if (segment.owner === null || segment.owner === cp.id) return alert("Must target an opponent's segment.");
-        if (segment.level > 2) return alert("COMPETITIVE STRIKE only works on Level 1 or Level 2 segments.");
+        if (segment.owner === null || segment.owner === cp.id) { showToast('info','Invalid Target',"Must target an opponent's segment."); return; }
+        if (segment.level > 2) { showToast('info','Invalid Target','COMPETITIVE STRIKE only works on Level 1 or Level 2 segments.'); return; }
         const defender = players.find(p => p.id === segment.owner);
-        attemptAttack(cp.id, defender.id, card.power, card.name, () => {
-            executeBiddingWar(cp, defender, segment, segEl, finish);
-        });
+        const blocked = await attemptAttackAsync(cp.id, defender.id, card.power, card.name, card.desc);
+        if (!blocked) {
+            await new Promise(res => executeBiddingWar(cp, defender, segment, segEl, res));
+        }
+        finish();
     }
     
     else if (card.name === 'BLITZ ATTACK') {
-        if (segment.owner === null || segment.owner === cp.id) return alert("Must target an opponent's segment.");
-        if (targetingMode.targets.includes(id)) return alert("Already targeted this segment.");
+        if (segment.owner === null || segment.owner === cp.id) { showToast('info','Invalid Target',"Must target an opponent's segment."); return; }
+        if (targetingMode.targets.includes(id)) { showToast('info','Already Targeted','Already targeted this segment.'); return; }
         
         targetingMode.targets.push(id);
-        segEl.style.boxShadow = "0 0 10px red";
+        segEl.style.boxShadow = '0 0 10px red';
         
         if (targetingMode.targets.length === 2) {
             let t1 = board[targetingMode.targets[0]];
             let t2 = board[targetingMode.targets[1]];
             let d1 = players.find(p => p.id === t1.owner);
             let d2 = players.find(p => p.id === t2.owner);
-            
-            // Need to sequence the attacks
-            let resolve2 = () => {
-                if(t2.owner !== null) {
-                    attemptAttack(cp.id, d2.id, card.power, card.name, () => {
-                        t2.owner = null; t2.power = 0;
-                        logAction(`BLITZ hit! ${d2.name} lost a segment.`);
-                    });
-                }
-                document.querySelectorAll('.segment').forEach(s => s.style.boxShadow='');
-                finish();
-            };
-            
-            attemptAttack(cp.id, d1.id, card.power, card.name, () => {
-                t1.owner = null; t1.power = 0;
-                logAction(`BLITZ hit! ${d1.name} lost a segment.`);
-                resolve2();
-            });
-            // If d1 blocked, we still try d2
-            if (t1.owner !== null) resolve2(); // meaning it was blocked
+
+            const b1 = await attemptAttackAsync(cp.id, d1.id, card.power, card.name, card.desc);
+            if (!b1) { t1.owner = null; t1.power = 0; logAction(`BLITZ hit! ${d1.name} lost a segment.`); showToast('attack','BLITZ!',`${d1.name} lost a segment.`); }
+            const b2 = d2 ? await attemptAttackAsync(cp.id, d2.id, card.power, card.name, card.desc) : true;
+            if (!b2 && t2.owner !== null) { t2.owner = null; t2.power = 0; logAction(`BLITZ hit! ${d2.name} lost a segment.`); showToast('attack','BLITZ!',`${d2.name} lost a segment.`); }
+
+            document.querySelectorAll('.segment').forEach(s => s.style.boxShadow='');
+            finish();
         } else {
-            alert("Select the second target for BLITZ ATTACK.");
+            showToast('attack','BLITZ','Select the second target for BLITZ ATTACK.');
         }
     }
 }
@@ -900,29 +1137,16 @@ async function handleSegmentClick(id, segEl) {
         let cost = segmentCosts[segment.level];
         let needsCard = true;
         
-        // Event Modifiers
-        if (segment.level === 1 && eventModifiers.l1FreeNoCard) {
-            cost = 0;
-            needsCard = false;
-        }
-        if (segment.level === 2 && eventModifiers.l2FirstFree) {
-            cost = 0;
-        }
-        if (segment.level === 2 && eventModifiers.l1PlayersFreeL2) {
-            if (getHighestSegmentLevel(cp.id) === 1) {
-                cost = 0;
-            }
-        }
-        if (segment.level === 4 && eventModifiers.l4NoCard) {
-            needsCard = false;
-        }
+        if (segment.level === 1 && eventModifiers.l1FreeNoCard) { cost = 0; needsCard = false; }
+        if (segment.level === 2 && eventModifiers.l2FirstFree)   { cost = 0; }
+        if (segment.level === 2 && eventModifiers.l1PlayersFreeL2 && getHighestSegmentLevel(cp.id) === 1) { cost = 0; }
+        if (segment.level === 4 && eventModifiers.l4NoCard)       { needsCard = false; }
         
         let cardToUseIdx = -1;
         let cardUsed = null;
         if (needsCard) {
             let validCards = [];
-            const segLetter = id.split('-')[1]; // e.g., 'A' from 'L1-A' or '1' from 'L4-1'
-            
+            const segLetter = id.split('-')[1];
             cp.hand.forEach((c, idx) => {
                 if (c.type === 'claim' && c.level === segment.level) {
                     if (c.targets.includes('Any') || c.targets.includes('Top') || c.targets.includes(segLetter)) {
@@ -930,13 +1154,10 @@ async function handleSegmentClick(id, segEl) {
                     }
                 }
             });
-
             if (validCards.length === 0) {
-                alert(`You need a matching Dot Card in your hand to claim this segment!`);
+                showToast('info','No Card','You need a matching Dot Card in your hand to claim this segment!');
                 return;
             }
-            
-            // Auto-select lowest power card, keep wild cards as fallback
             validCards.sort((a, b) => {
                 const aWild = a.card.targets.includes('Any') || a.card.targets.includes('Top');
                 const bWild = b.card.targets.includes('Any') || b.card.targets.includes('Top');
@@ -944,56 +1165,46 @@ async function handleSegmentClick(id, segEl) {
                 if (!aWild && bWild) return -1;
                 return a.card.power - b.card.power;
             });
-            
             cardToUseIdx = validCards[0].idx;
-            cardUsed = validCards[0].card;
+            cardUsed     = validCards[0].card;
         }
 
-        // 2. Check Prerequisite (Hierarchical Progression)
         if (segment.level > 1) {
             const requiredLevel = segment.level - 1;
-            const ownsRequired = Object.values(board).some(s => s.owner === cp.id && s.level === requiredLevel);
+            const ownsRequired  = Object.values(board).some(s => s.owner === cp.id && s.level === requiredLevel);
             if (!ownsRequired) {
-                alert(`You must own at least one Level ${requiredLevel} segment before claiming a Level ${segment.level} segment!`);
+                showToast('info','Prerequisite Missing',`You must own at least one Level ${requiredLevel} segment first!`);
                 return;
             }
         }
         
-        // 3. Ensure they have enough tokens (must remain >= 3)
         if (cp.tokens - cost >= 3) {
-            // 4. Ensure they have enough flags
-            if (cp.flags <= 0) {
-                alert("You don't have enough flags to claim more territory.");
-                return;
-            }
-            
-            // Process the claim
+            if (cp.flags <= 0) { showToast('info','No Flags','You don\'t have enough flags to claim more territory.'); return; }
             cp.tokens -= cost;
-            cp.flags -= 1;
+            cp.flags  -= 1;
             if (cardToUseIdx !== -1) {
-                cp.hand.splice(cardToUseIdx, 1); // Consume the claim card
-                segment.power = cardUsed.power; // Stamp the power onto the segment
+                cp.hand.splice(cardToUseIdx, 1);
+                segment.power = cardUsed.power;
             }
             segment.owner = cp.id;
-            
-            lastAction = { type: 'claim', segmentId: id }; // Track for Copycat
-            
+            lastAction = { type: 'claim', segmentId: id };
             if (segment.level === 2 && eventModifiers.l2FirstFree) {
-                eventModifiers.l2FirstFree = false; // Consume the free play
+                eventModifiers.l2FirstFree = false;
                 logAction(`<strong>${cp.name}</strong> claimed the first Level 2 segment for FREE!`);
             }
-            
             const segmentName = segEl.innerText.split('\n')[0].trim();
             logAction(`<strong>${cp.name}</strong> played a Dot Card and conquered ${segmentName} for ${cost} tokens.`);
+            showToast('info','Segment Claimed!',`${cp.name} conquered ${segmentName}.`);
+            updateUI();
             endTurn();
         } else {
-            alert(`Not enough tokens! Cost is ${cost}, and you must keep at least 3 tokens.`);
+            showToast('info','Not Enough Tokens',`Cost is ${cost} tokens and you must keep at least 3.`);
         }
     } else {
         // Belong to someone else
         if (segment.owner !== cp.id) {
             if (!eventModifiers.attacksAllowed) {
-                alert("Peace Treaty is active! No attacks allowed this round.");
+                showToast('info','Peace Treaty','No attacks allowed this round.');
                 return;
             }
             
@@ -1018,69 +1229,42 @@ async function handleSegmentClick(id, segEl) {
                     if (!aWild && bWild) return -1;
                     return a.card.power - b.card.power;
                 });
-                
                 cardToUseIdx = validCards[0].idx;
-                cardUsed = validCards[0].card;
+                cardUsed     = validCards[0].card;
 
-                const prevOwnerId = segment.owner;
-                const prevOwner = players.find(p => p.id === prevOwnerId);
-                
-                if (cp.flags <= 0) {
-                    alert("You don't have enough flags to claim this territory through a bid.");
-                    return;
-                }
+                const prevOwner = players.find(p => p.id === segment.owner);
+                if (cp.flags <= 0) { showToast('info','No Flags','You don\'t have enough flags to claim territory through a bid.'); return; }
 
-                alert(`BIDDING WAR! ${cp.name} is challenging ${prevOwner.name} for ${segEl.innerText.split('\n')[0].trim()} using ${cardUsed.name}!`);
+                showToast('bid','Bidding War!',`${cp.name} challenges ${prevOwner.name} for ${segEl.innerText.split('\n')[0].trim()}!`);
 
-                let currentBid = 0;
-                let activeBidder = cp;
-                let inactiveBidder = prevOwner;
-                let folded = false;
+                let currentBid    = 0;
+                let activeBidder  = cp;
+                let inactiveBidder= prevOwner;
+                let folded        = false;
                 let highestBidder = null;
 
-                while (!folded) {
-                    let fee = (activeBidder === cp) ? Math.ceil(cardUsed.power / 2) : 0;
-                    
-                    let title = "Bidding War";
-                    let desc = `Enter a bid higher than ${currentBid} to conquer ${segEl.innerText.split('\n')[0].trim()}. (You must keep 3 tokens)`;
-                    
-                    let newBid = await openBidModal(activeBidder, currentBid, false, title, desc, fee);
-                    
-                    if (newBid === null) {
-                        folded = true;
-                        highestBidder = inactiveBidder;
-                        alert(`${activeBidder.name} folded! ${highestBidder.name} wins the bid.`);
-                        break;
-                    }
-                    
-                    currentBid = newBid;
-                    
-                    let temp = activeBidder;
-                    activeBidder = inactiveBidder;
-                    inactiveBidder = temp;
-                }
+                const segName = segEl.innerText.split('\n')[0].trim();
+                openSplitBidOverlay(cp, prevOwner, segName, `Card: ${cardUsed.name}`);
 
-                if (highestBidder === cp) {
+                await new Promise(res => executeBiddingWar(cp, prevOwner, segment, segEl, res));
+
+                if (segment.owner === cp.id) {
+                    // challenger won (executeAttackSteal already ran inside executeBiddingWar)
                     let powerFee = Math.ceil(cardUsed.power / 2);
-                    cp.tokens -= (currentBid + powerFee);
-                    cp.flags -= 1;
+                    cp.tokens -= powerFee;
+                    cp.flags  -= 1;
                     cp.hand.splice(cardToUseIdx, 1);
-                    segment.owner = cp.id;
                     segment.power = cardUsed.power;
-                    lastAction = { type: 'claim', segmentId: id }; // Track for Copycat
-                    logAction(`<strong>${cp.name}</strong> won the bidding war for ${currentBid} tokens (+${powerFee} power fee) and took the segment!`);
+                    lastAction = { type: 'claim', segmentId: id };
                 } else {
-                    prevOwner.tokens -= currentBid;
                     cp.hand.splice(cardToUseIdx, 1);
-                    logAction(`<strong>${prevOwner.name}</strong> defended their segment by winning the bid for ${currentBid} tokens! <span style="color:${cp.color}">${cp.name}</span> lost their card.`);
+                    logAction(`<span style="color:${cp.color}">${cp.name}</span> lost the bidding war and their card.`);
                 }
-                
+                updateUI();
                 endTurn();
                 return;
             }
-            
-            // If they don't have a claim card, they can't do anything because Attack cards now use targeting mode.
-            alert("You need a matching Dot Card to initiate a bidding war. Play an Attack card from your hand if you want to attack.");
+            showToast('info','Need a Dot Card','You need a matching Dot Card to start a bidding war. Use an Attack card from your hand to attack directly.');
         }
     }
 }
