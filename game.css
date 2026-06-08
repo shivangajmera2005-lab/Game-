@@ -25,6 +25,7 @@
     display: flex;
     flex-direction: column;
     overflow-y: auto;
+    min-height: 0;
 }
 
 .actions-sidebar {
@@ -407,63 +408,116 @@
     }
 }
 
-/* Landscape Mobile Layout: Shrink columns to fit screen */
 @media (max-width: 1024px) and (orientation: landscape) {
     .game-container {
         grid-template-columns: 1fr 280px;
+        height: 100vh;
+        overflow: hidden;
     }
     .sidebar {
-        padding: 10px;
+        padding: 12px;
+        min-height: 0;
+        overflow-y: auto;
     }
     .main-arena {
         padding: 10px;
-        min-width: 0; /* Prevents grid blowout from large intrinsic width */
+        min-width: 0;
+        min-height: 0;
         display: flex;
         flex-direction: column;
     }
     .board-area {
+        flex: 1;
         min-width: 0;
         min-height: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px 0;
     }
     .sidebar-title {
         font-size: 0.9rem;
-        margin-bottom: 12px;
-        padding-bottom: 8px;
+        margin-bottom: 8px;
+        padding-bottom: 6px;
     }
     .empire-triangle {
-        transform: scale(0.72);
-        transform-origin: center;
+        transform: none; /* Disable transform scaling to prevent blank layouts */
+        width: 100%;
+        max-width: 320px; /* Constrain width so it fits within small mobile landscape */
+        margin: 0 auto;
+    }
+    /* Tiny board segments for landscape mobile */
+    .empire-triangle .level-1 .segment {
+        width: 44px;
+        height: 34px;
+    }
+    .empire-triangle .level-2 .segment {
+        width: 52px;
+        height: 40px;
+    }
+    .empire-triangle .level-3 .segment {
+        width: 62px;
+        height: 46px;
+    }
+    .empire-triangle .level-4 .segment {
+        width: 120px;
+        height: 52px;
+    }
+    /* Small text inside segments */
+    .empire-triangle .segment div {
+        font-size: 0.42rem !important;
+        line-height: 1;
+    }
+    .empire-triangle .segment.claimed .segment-owner {
+        font-size: 0.35rem;
+        padding: 0px 2px;
+        margin-top: 1px;
+    }
+    .empire-triangle .triangle-level {
+        gap: 3px;
+        margin-bottom: 3px;
     }
     .action-log-wrap {
-        height: 110px; /* smaller log on landscape mobile */
-        padding: 10px;
+        height: 80px; /* smaller log on landscape mobile */
+        padding: 8px;
     }
     .action-btn {
-        padding: 10px;
-        font-size: 0.75rem;
+        padding: 8px 12px;
+        font-size: 0.7rem;
     }
     .players-roster {
         gap: 6px;
         margin-bottom: 8px;
+        padding: 4px 8px;
     }
     .roster-card {
         padding: 4px 8px;
-        min-width: 110px;
+        min-width: 100px;
         max-width: none;
+        gap: 8px;
     }
     .roster-name {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
     }
     .roster-stats {
-        font-size: 0.65rem;
+        font-size: 0.6rem;
         gap: 4px;
     }
     .current-turn-indicator {
-        padding: 12px;
-        margin-bottom: 16px;
+        padding: 8px;
+        margin-bottom: 12px;
+    }
+    .current-turn-indicator span {
+        font-size: 1rem;
     }
     .game-card {
-        padding: 10px;
+        padding: 8px;
+    }
+    .game-card .card-title {
+        font-size: 0.8rem;
+    }
+    .game-card .card-desc {
+        font-size: 0.65rem;
     }
 }
 
