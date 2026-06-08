@@ -17,49 +17,66 @@
         <h1 class="players-title">EMPIRE CLIMB</h1>
         <p class="players-subtitle">"A NEW RULER RISES"</p>
 
-        <div class="players-box">
-            <div class="players-header">
-                <div class="players-header-left">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    <span>GATHER YOUR LEGIONS</span>
+        <div class="split-layout">
+            <!-- Left Column: Local Play Setup -->
+            <div class="players-box local-box">
+                <div>
+                    <div class="players-header">
+                        <div class="players-header-left">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                            <span>LOCAL PASS & PLAY</span>
+                        </div>
+                        <button id="add-player-btn" class="add-player-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                            Add Player
+                        </button>
+                    </div>
+
+                    <div id="players-list" class="players-list">
+                        <!-- Players will be injected here via JS -->
+                    </div>
                 </div>
-                <button id="add-player-btn" class="add-player-btn">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-                    Add Player
-                </button>
+
+                <div>
+                    <button id="begin-conquest-btn" class="begin-conquest-btn">BEGIN CONQUEST</button>
+                    <p class="players-footer">3 TO 6 PLAYERS REQUIRED TO RULE</p>
+                </div>
             </div>
 
-            <div id="players-list" class="players-list">
-                <!-- Players will be injected here via JS -->
-            </div>
+            <!-- Right Column: Online Multiplayer -->
+            <div class="players-box multiplayer-box">
+                <div>
+                    <div class="players-header">
+                        <div class="players-header-left">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00AAFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 6a6 6 0 1 0 6 6 6 6 0 0 0-6-6zm0 10a4 4 0 1 1 4-4 4 4 0 0 1-4 4z"/></svg>
+                            <span style="color:#00AAFF;">ONLINE MULTIPLAYER</span>
+                        </div>
+                    </div>
 
-            <button id="begin-conquest-btn" class="begin-conquest-btn">BEGIN CONQUEST</button>
-            <p class="players-footer">3 TO 6 PLAYERS REQUIRED TO RULE</p>
+                    <div class="multiplayer-info-card">
+                        <div class="mp-info-icon">🌐</div>
+                        <h3 class="mp-info-title">Conquer Globally</h3>
+                        <p class="mp-info-desc">Host or join real-time multiplayer lobbies to wage war with other rulers over the network.</p>
+                        
+                        <ul class="mp-features-list">
+                            <li><span>⚡</span> Real-time synchronization</li>
+                            <li><span>🏰</span> Host private or public rooms</li>
+                            <li><span>👥</span> Play with 3 to 6 players remotely</li>
+                        </ul>
+                    </div>
+                </div>
 
-            <!-- ── Multiplayer entry ───────────────────────────── -->
-            <div style="display:flex;align-items:center;gap:14px;margin:20px 0 10px;">
-                <div style="flex:1;height:1px;background:rgba(255,255,255,0.1);"></div>
-                <span style="font-family:'Orbitron',monospace;font-size:0.55rem;letter-spacing:0.2em;color:rgba(255,255,255,0.3);">OR</span>
-                <div style="flex:1;height:1px;background:rgba(255,255,255,0.1);"></div>
+                <div>
+                    <button
+                        id="multiplayer-btn"
+                        onclick="window.location.href='lobby.html'"
+                        class="enter-lobby-btn"
+                    >
+                        ⚡ ENTER ONLINE LOBBY
+                    </button>
+                    <p class="players-footer" style="color:rgba(0, 170, 255, 0.6)">INTERNET CONNECTION REQUIRED</p>
+                </div>
             </div>
-            <button
-                id="multiplayer-btn"
-                onclick="window.location.href='lobby.html'"
-                style="
-                    width:100%;padding:13px 20px;border-radius:10px;
-                    background:rgba(0,170,255,0.08);border:1px solid rgba(0,170,255,0.4);
-                    color:#00AAFF;font-family:'Orbitron',monospace;font-size:0.72rem;
-                    font-weight:700;letter-spacing:0.18em;cursor:pointer;
-                    transition:all 0.2s ease;
-                "
-                onmouseover="this.style.background='rgba(0,170,255,0.16)';this.style.boxShadow='0 0 24px rgba(0,170,255,0.25)'"
-                onmouseout="this.style.background='rgba(0,170,255,0.08)';this.style.boxShadow='none'"
-            >
-                ⚡ MULTIPLAYER — ONLINE LOBBY
-            </button>
-            <p style="font-family:'Rajdhani',sans-serif;font-size:0.78rem;color:rgba(255,255,255,0.3);text-align:center;margin-top:8px;">
-                Play with friends over the internet
-            </p>
         </div>
     </div>
     <script src="players.js"></script>

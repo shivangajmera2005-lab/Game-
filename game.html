@@ -32,15 +32,20 @@
 
     <div id="particles"></div>
 
-    <div class="game-container">
-        <!-- Sidebar: Players -->
-        <aside class="sidebar players-sidebar">
-            <h2 class="sidebar-title">EMPIRES</h2>
-            <div id="players-roster" class="players-roster"></div>
-        </aside>
+    <!-- Spectator Floating Indicator -->
+    <div id="spectator-indicator" class="spectator-indicator" style="display: none;">
+        <span class="spec-dot">●</span> SPECTATING &nbsp;|&nbsp; ROOM: <span id="spec-room-code">-</span>
+    </div>
 
+    <!-- Host Room Code Badge -->
+    <div id="host-room-badge" class="host-room-badge" style="display: none;">
+        <span>🔑 ROOM:</span> <span id="host-room-code">-</span>
+    </div>
+
+    <div class="game-container">
         <!-- Main Center Area: Board & Action Log -->
         <main class="main-arena">
+            <div id="players-roster" class="players-roster"></div>
             <div class="board-area">
                 <div class="empire-triangle" id="empire-board">
                     <!-- LEVEL 4 — GOLD -->
@@ -302,6 +307,56 @@
         </div>
     </div>
 
+    <!-- Win Screen Modal -->
+    <div id="win-screen" class="win-screen-overlay">
+        <div class="win-screen-inner">
+            <div class="win-crown-icon">👑</div>
+            <h1 class="win-title">EMPIRE CONQUERED</h1>
+            <p class="win-subtitle">A new sovereign has ascended the throne</p>
+            
+            <div class="winner-announcement">
+                <div class="winner-avatar" id="winner-avatar">W</div>
+                <div class="winner-name" id="winner-name">Player Name</div>
+                <div class="winner-score" id="winner-score">0 Power Points</div>
+            </div>
+            
+            <h3 class="leaderboard-title">FINAL STANDINGS</h3>
+            <div class="leaderboard-list" id="leaderboard-list">
+                <!-- Standings injected dynamically by game.js -->
+            </div>
+            
+            <div class="win-actions">
+                <button id="btn-rematch" class="win-action-btn rematch-btn">⚡ REMATCH</button>
+                <button id="btn-lobby" class="win-action-btn lobby-btn">🏰 BACK TO LOBBY</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================== ALLIANCE CHAT WIDGET ======================== -->
+    <div id="chat-widget" class="chat-widget" style="display: none;">
+        <!-- Chat Toggle Button -->
+        <button id="chat-toggle-btn" class="chat-toggle-btn">
+            <span class="chat-icon">💬</span>
+            <span id="chat-badge" class="chat-badge">0</span>
+        </button>
+
+        <!-- Chat Window Panel -->
+        <div id="chat-panel" class="chat-panel collapsed">
+            <div class="chat-header">
+                <span class="chat-header-title">ALLIANCE CHAT</span>
+                <button id="chat-close-btn" class="chat-close-btn">✕</button>
+            </div>
+            <div id="chat-messages" class="chat-messages">
+                <div class="chat-system-message">Secure communication link established.</div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Enter transmission..." maxlength="120" autocomplete="off" />
+                <button id="chat-send-btn" class="chat-send-btn">SEND</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
     <script src="game.js"></script>
 </body>
 

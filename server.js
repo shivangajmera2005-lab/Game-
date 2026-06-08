@@ -3,14 +3,14 @@
 //  Port: 5931 (local) | process.env.PORT (Railway)
 // ═══════════════════════════════════════════════════════════════════
 
-const express  = require('express');
-const http     = require('http');
+const express = require('express');
+const http = require('http');
 const { Server } = require('socket.io');
-const cors     = require('cors');
-const path     = require('path');
+const cors = require('cors');
+const path = require('path');
 
 // ── App setup ───────────────────────────────────────────────────────
-const app    = express();
+const app = express();
 const server = http.createServer(app);
 
 // Allow requests from:
@@ -83,10 +83,11 @@ function generateRoomCode() {
 function publicPlayers(room) {
     return room.players.map(p => ({
         numericId: p.numericId,
-        name:      p.name,
-        color:     p.color,
-        isHost:    p.socketId === room.hostId,
-        ready:     p.ready || false,
+        name: p.name,
+        color: p.color,
+        isHost: p.socketId === room.hostId,
+        ready: p.ready || false,
+        connected: p.connected !== false,
     }));
 }
 
@@ -119,21 +120,22 @@ io.on('connection', (socket) => {
             return socket.emit('error', { message: 'Player name cannot be empty.' });
         }
 
+        socket.playerName = name;
         const code = generateRoomCode();
         const player = {
-            socketId:  socket.id,
+            socketId: socket.id,
             numericId: 1,
             name,
-            color:     COLORS[0],
-            isHost:    true,
-            ready:     false,
+            color: COLORS[0],
+            isHost: true,
+            ready: false,
         };
 
         rooms[code] = {
             code,
-            hostId:    socket.id,
-            players:   [player],
-            started:   false,
+            hostId: socket.id,
+            players: [player],
+            started: false,
             createdAt: Date.now(),
         };
 
@@ -142,8 +144,8 @@ io.on('connection', (socket) => {
 
         socket.emit('room-created', {
             roomCode: code,
-            players:  publicPlayers(rooms[code]),
-            isHost:   true,
+            players: publicPlayers(rooms[code]),
+            isHost: true,
         });
     });
 
@@ -151,6 +153,7 @@ io.on('connection', (socket) => {
     socket.on('join-room', ({ roomCode, playerName }) => {
         const code = (roomCode || '').trim().toUpperCase();
         const name = (playerName || '').trim();
+        socket.playerName = name;
 
         if (!name) {
             return socket.emit('error', { message: 'Player name cannot be empty.' });
@@ -161,21 +164,67 @@ io.on('connection', (socket) => {
 
         const room = rooms[code];
 
-        if (room.started) {
-            return socket.emit('error', { message: 'This game has already started.' });
+        // Check if player is already in the room (reconnecting/refreshing)
+        const existingPlayer = room.players.find(p => p.name === name);
+        if (existingPlayer) {
+            existingPlayer.socketId = socket.id;
+            existingPlayer.connected = true;
+            
+            // Re-assign hostId if the reconnecting player was the first player (original host)
+            if (room.players[0].name === name) {
+                room.hostId = socket.id;
+            }
+            
+            socket.join(code);
+            console.log(`[room] ${code} player "${name}" reconnected`);
+
+            socket.emit('room-joined', {
+                roomCode: code,
+                players: publicPlayers(room),
+                isHost: room.hostId === socket.id,
+                isSpectator: false,
+                gameState: room.gameState || null
+            });
+
+            // Re-broadcast updated game state frame to all clients
+            if (room.gameState) {
+                io.to(code).emit('game-state-update', room.gameState);
+            }
+
+            io.to(code).emit('player-connection-status', { name: name, connected: true });
+            socket.to(code).emit('playerJoined', { name: name + " (Reconnected)" });
+            return;
         }
+
+        // If the game has already started and this is a new player, join as spectator
+        if (room.started) {
+            socket.join(code);
+            console.log(`[room] ${code} joined as SPECTATOR by "${name}"`);
+            
+            socket.emit('room-joined', {
+                roomCode: code,
+                players: publicPlayers(room),
+                isHost: false,
+                isSpectator: true,
+                gameState: room.gameState || null
+            });
+
+            socket.to(code).emit('playerJoined', { name: name + " (Spectator)" });
+            return;
+        }
+
         if (room.players.length >= 6) {
             return socket.emit('error', { message: 'Room is full (max 6 players).' });
         }
 
         const numericId = room.players.length + 1;
         const player = {
-            socketId:  socket.id,
+            socketId: socket.id,
             numericId,
             name,
-            color:     COLORS[numericId - 1],
-            isHost:    false,
-            ready:     false,
+            color: COLORS[numericId - 1],
+            isHost: false,
+            ready: false,
         };
 
         room.players.push(player);
@@ -185,8 +234,9 @@ io.on('connection', (socket) => {
         // Tell the joining player their full room state
         socket.emit('room-joined', {
             roomCode: code,
-            players:  publicPlayers(room),
-            isHost:   false,
+            players: publicPlayers(room),
+            isHost: false,
+            isSpectator: false,
         });
 
         // Notify other clients in the room
@@ -195,7 +245,67 @@ io.on('connection', (socket) => {
         // Update all clients with the new lobby state
         io.to(code).emit('lobbyUpdated', {
             roomCode: code,
-            players:  publicPlayers(room),
+            players: publicPlayers(room),
+        });
+    });
+
+    // ── CREATE LOCAL ROOM FOR SPECTATORS ─────────────────────────────
+    socket.on('create-local-room', ({ players, gameState }) => {
+        const code = generateRoomCode();
+        rooms[code] = {
+            code,
+            hostId: socket.id,
+            players: (players || []).map((p, idx) => ({
+                numericId: p.id,
+                name: p.name,
+                color: p.color || COLORS[idx % COLORS.length],
+                ready: true
+            })),
+            started: true,
+            isLocal: true,
+            createdAt: Date.now(),
+            gameState: gameState || null
+        };
+        socket.join(code);
+        console.log(`[local-room] ${code} created for spectating`);
+        socket.emit('local-room-created', { roomCode: code });
+    });
+
+    // ── GAME STATE UPDATE ────────────────────────────────────────────
+    socket.on('game-state-update', ({ roomCode, gameState }) => {
+        const code = (roomCode || '').trim().toUpperCase();
+        const room = rooms[code];
+        if (!room) return;
+
+        room.gameState = gameState;
+        // Broadcast the state update to everyone else in the room
+        socket.to(code).emit('game-state-update', gameState);
+    });
+
+    // ── SEND CHAT MESSAGE ─────────────────────────────────────────────
+    socket.on('send-chat-msg', ({ roomCode, message }) => {
+        const code = (roomCode || '').trim().toUpperCase();
+        const room = rooms[code];
+        if (!room) return;
+
+        const msgStr = (message || '').trim().substring(0, 120);
+        if (!msgStr) return;
+
+        // Find sender identity and color
+        let senderName = socket.playerName || 'Observer';
+        let senderColor = '#00e5ff'; // Default spectator color (cyan)
+
+        const player = room.players.find(p => p.socketId === socket.id);
+        if (player) {
+            senderName = player.name;
+            senderColor = player.color;
+        }
+
+        io.to(code).emit('chat-msg-received', {
+            sender: senderName,
+            color: senderColor,
+            message: msgStr,
+            timestamp: Date.now()
         });
     });
 
@@ -211,7 +321,7 @@ io.on('connection', (socket) => {
             console.log(`[room] ${code} player "${player.name}" is READY`);
             io.to(code).emit('lobbyUpdated', {
                 roomCode: code,
-                players:  publicPlayers(room),
+                players: publicPlayers(room),
             });
         }
     });
@@ -228,7 +338,7 @@ io.on('connection', (socket) => {
             console.log(`[room] ${code} player "${player.name}" is NOT READY`);
             io.to(code).emit('lobbyUpdated', {
                 roomCode: code,
-                players:  publicPlayers(room),
+                players: publicPlayers(room),
             });
         }
     });
@@ -262,11 +372,11 @@ io.on('connection', (socket) => {
         // Emit to ALL players in the room (including host)
         // Shape matches what localStorage expects (game.js reads this)
         const gamePlayers = room.players.map(p => ({
-            id:       p.numericId,
-            name:     p.name,
-            color:    p.color,
-            tokens:   15,
-            flags:    5,
+            id: p.numericId,
+            name: p.name,
+            color: p.color,
+            tokens: 15,
+            flags: 5,
             bankrupt: false,
         }));
 
@@ -283,7 +393,16 @@ io.on('connection', (socket) => {
         const code = room.code;
         const leavingPlayer = room.players.find(p => p.socketId === socket.id);
 
-        // Remove this player
+        if (leavingPlayer) {
+            if (room.started) {
+                leavingPlayer.connected = false;
+                console.log(`[room] ${code} player "${leavingPlayer.name}" disconnected (inactive)`);
+                io.to(code).emit('player-connection-status', { name: leavingPlayer.name, connected: false });
+                return;
+            }
+        }
+
+        // If game has not started yet, fully remove the player
         room.players = room.players.filter(p => p.socketId !== socket.id);
 
         // If the room is empty, delete it

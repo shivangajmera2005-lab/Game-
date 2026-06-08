@@ -1,10 +1,19 @@
-﻿// Game Engine
+// Game Engine
 
 const segmentCosts = { 1: 0, 2: 3, 3: 5, 4: 8 };
 let players = [];
 let board = {};
 let currentPlayerIndex = 0;
 let round = 1;
+
+// Socket Sync State
+const SOCKET_SERVER_URL = window.location.hostname === 'localhost'
+    ? 'http://localhost:5931'
+    : window.location.origin;
+let socket = null;
+let isSpectator = false;
+let roomCode = null;
+let isMultiplayer = false;
 
 // State variables for events
 let activeEvent = null;
@@ -56,6 +65,51 @@ const handEl = document.getElementById('player-hand');
 
 // Initialize
 function initGame() {
+    // Read query parameters to check if spectator
+    const urlParams = new URLSearchParams(window.location.search);
+    roomCode = urlParams.get('room') || localStorage.getItem('empireClimbRoomCode');
+    isSpectator = urlParams.get('spectator') === 'true';
+    isMultiplayer = localStorage.getItem('empireClimbIsMultiplayer') === 'true' || isSpectator;
+
+    // Init board
+    document.querySelectorAll('.segment').forEach(seg => {
+        const id = seg.getAttribute('data-id');
+        board[id] = { owner: null, level: parseInt(seg.getAttribute('data-level')), power: 0 };
+        
+        seg.addEventListener('click', () => {
+            if (isSpectator) return;
+            handleSegmentClick(id, seg);
+        });
+    });
+
+    if (isSpectator) {
+        // Set spectator body class and display indicator
+        document.body.classList.add('spectator-active');
+        const indicator = document.getElementById('spectator-indicator');
+        if (indicator) {
+            indicator.style.display = 'flex';
+            document.getElementById('spec-room-code').textContent = roomCode;
+        }
+
+        // Show a loading text or placeholder in the players roster
+        rosterEl.innerHTML = '<div style="color:#aaa; font-family:\'Orbitron\', monospace; font-size:0.9rem; text-align:center; padding: 20px;">CONNECTING TO BATTLEFIELD...</div>';
+
+        // Connect to Socket.io to receive updates
+        connectSocketSync();
+
+        // Load initial state if available
+        const initialStateData = localStorage.getItem('empireClimbSpectatorInitialState');
+        if (initialStateData) {
+            try {
+                applyGameState(JSON.parse(initialStateData));
+            } catch (e) {
+                console.error("Error loading initial spectator state", e);
+            }
+        }
+        return;
+    }
+
+    // Normal game loading
     const data = localStorage.getItem('empireClimbPlayers');
     if (!data) {
         window.location.href = 'players.html';
@@ -71,17 +125,266 @@ function initGame() {
         }
     });
 
-    // Init board
-    document.querySelectorAll('.segment').forEach(seg => {
-        const id = seg.getAttribute('data-id');
-        board[id] = { owner: null, level: parseInt(seg.getAttribute('data-level')), power: 0 };
-        
-        seg.addEventListener('click', () => handleSegmentClick(id, seg));
-    });
-
     logAction('The Empire Wars have begun.');
     updateUI();
     startTurn();
+
+    if (isMultiplayer) {
+        const chatWidget = document.getElementById('chat-widget');
+        if (chatWidget) {
+            chatWidget.style.display = 'block';
+            initChatHandlers();
+        }
+    }
+
+    // Connect to sync server
+    connectSocketSync();
+}
+
+function serializeGameState() {
+    return {
+        players: players.map(p => ({
+            id: p.id,
+            name: p.name,
+            color: p.color,
+            tokens: p.tokens,
+            flags: p.flags,
+            bankrupt: p.bankrupt,
+            hand: p.hand
+        })),
+        board: board,
+        currentPlayerIndex: currentPlayerIndex,
+        round: round,
+        activeEvent: activeEvent,
+        eventModifiers: eventModifiers,
+        actionLogHtml: actionLogEl.innerHTML
+    };
+}
+
+function applyGameState(state) {
+    if (!state) return;
+    
+    players = state.players;
+    board = state.board;
+    currentPlayerIndex = state.currentPlayerIndex;
+    round = state.round;
+    activeEvent = state.activeEvent;
+    eventModifiers = state.eventModifiers;
+    
+    // Update action log
+    if (state.actionLogHtml) {
+        actionLogEl.innerHTML = state.actionLogHtml;
+        actionLogEl.scrollTop = actionLogEl.scrollHeight;
+    }
+    
+    // Update UI elements
+    updateUI();
+    
+    // Update turn header
+    const cp = players[currentPlayerIndex];
+    if (cp) {
+        currentPlayerNameEl.textContent = cp.name;
+        currentPlayerNameEl.style.color = cp.color;
+    }
+    if (roundCounterEl) {
+        roundCounterEl.textContent = `ROUND ${round}`;
+    }
+}
+
+function syncGameState() {
+    if (isSpectator) return;
+    if (socket && socket.connected && roomCode) {
+        const state = serializeGameState();
+        socket.emit('game-state-update', { roomCode, gameState: state });
+    }
+}
+
+function connectSocketSync() {
+    if (typeof io === 'undefined') {
+        console.warn('Socket.IO client library not loaded. Local offline mode only.');
+        return;
+    }
+    
+    socket = io(SOCKET_SERVER_URL, {
+        transports: ['websocket', 'polling'],
+        reconnectionDelay: 1000,
+        reconnectionAttempts: 10
+    });
+
+    socket.on('connect', () => {
+        console.log('[game] connected to sync server');
+        if (isSpectator) {
+            // Join as spectator
+            socket.emit('join-room', { roomCode, playerName: 'Spectator_' + Math.floor(Math.random()*1000) });
+        } else if (roomCode) {
+            // Join as active player
+            const myName = localStorage.getItem('empireClimbMyName') || 'Host';
+            socket.emit('join-room', { roomCode, playerName: myName });
+            
+            // Broadcast initial state immediately
+            syncGameState();
+        } else {
+            // Local pass-and-play room creation
+            const initialState = serializeGameState();
+            socket.emit('create-local-room', { players, gameState: initialState });
+        }
+    });
+
+    socket.on('local-room-created', ({ roomCode: newCode }) => {
+        roomCode = newCode;
+        localStorage.setItem('empireClimbRoomCode', roomCode);
+        console.log('[game] local room created for spectating:', roomCode);
+        
+        // Show host room badge
+        const badge = document.getElementById('host-room-badge');
+        if (badge) {
+            badge.style.display = 'flex';
+            document.getElementById('host-room-code').textContent = roomCode;
+            
+            // Click to copy code
+            badge.onclick = () => {
+                navigator.clipboard.writeText(roomCode).then(() => {
+                    const oldHtml = badge.innerHTML;
+                    badge.innerHTML = '<span>✅ COPIED!</span>';
+                    setTimeout(() => { badge.innerHTML = oldHtml; }, 1500);
+                });
+            };
+        }
+    });
+
+    socket.on('room-joined', ({ roomCode: joinedCode, players: lobbyPlayers, isSpectator: joinedAsSpectator, gameState }) => {
+        if (joinedAsSpectator) {
+            console.log('[game] spectating room:', joinedCode);
+            if (gameState) {
+                applyGameState(gameState);
+            }
+        } else {
+            console.log('[game] joined room:', joinedCode);
+            if (gameState) {
+                applyGameState(gameState);
+            }
+            // Display host room badge for active players
+            const badge = document.getElementById('host-room-badge');
+            if (badge) {
+                badge.style.display = 'flex';
+                document.getElementById('host-room-code').textContent = joinedCode;
+                
+                // Click to copy code
+                badge.onclick = () => {
+                    navigator.clipboard.writeText(joinedCode).then(() => {
+                        const oldHtml = badge.innerHTML;
+                        badge.innerHTML = '<span>✅ COPIED!</span>';
+                        setTimeout(() => { badge.innerHTML = oldHtml; }, 1500);
+                    });
+                };
+            }
+        }
+    });
+
+    socket.on('game-state-update', (state) => {
+        if (isSpectator || !isLocalTurn()) {
+            console.log('[game] received state sync');
+            applyGameState(state);
+        }
+    });
+
+    socket.on('player-connection-status', ({ name, connected }) => {
+        console.log(`[game] player connection status: ${name} -> ${connected}`);
+        const p = players.find(x => x.name === name);
+        if (p) {
+            p.connected = connected;
+            updateUI();
+        }
+    });
+
+    socket.on('chat-msg-received', ({ sender, color, message, timestamp }) => {
+        const msgContainer = document.getElementById('chat-messages');
+        if (!msgContainer) return;
+
+        const myName = localStorage.getItem('empireClimbMyName') || (isSpectator ? '' : 'Host');
+        const isSelf = sender === myName;
+        const bubble = document.createElement('div');
+        bubble.className = `chat-msg-bubble ${isSelf ? 'self' : 'other'}`;
+
+        bubble.innerHTML = `
+            <div class="chat-msg-sender" style="color: ${color}">${sender}</div>
+            <div class="chat-msg-text">${escapeHtml(message)}</div>
+        `;
+
+        msgContainer.appendChild(bubble);
+        msgContainer.scrollTop = msgContainer.scrollHeight;
+
+        // If panel is collapsed, update unread count badge
+        const panel = document.getElementById('chat-panel');
+        if (panel && panel.classList.contains('collapsed')) {
+            chatUnreadCount++;
+            const badge = document.getElementById('chat-badge');
+            if (badge) {
+                badge.style.display = 'block';
+                badge.textContent = chatUnreadCount;
+            }
+        }
+    });
+
+    socket.on('error', ({ message }) => {
+        console.error('[game] socket error:', message);
+    });
+}
+
+let chatUnreadCount = 0;
+
+function initChatHandlers() {
+    const toggleBtn = document.getElementById('chat-toggle-btn');
+    const closeBtn = document.getElementById('chat-close-btn');
+    const panel = document.getElementById('chat-panel');
+    const input = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('chat-send-btn');
+    const badge = document.getElementById('chat-badge');
+
+    if (!toggleBtn || !panel) return;
+
+    toggleBtn.addEventListener('click', () => {
+        panel.classList.remove('collapsed');
+        chatUnreadCount = 0;
+        badge.style.display = 'none';
+        badge.textContent = '0';
+        input.focus();
+    });
+
+    closeBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Avoid triggering toggleBtn click
+        panel.classList.add('collapsed');
+    });
+
+    sendBtn.addEventListener('click', () => {
+        sendChatMessage();
+    });
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            sendChatMessage();
+        }
+    });
+}
+
+function sendChatMessage() {
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    if (!text) return;
+
+    if (socket && socket.connected) {
+        socket.emit('send-chat-msg', { roomCode, message: text });
+        input.value = '';
+    }
+}
+
+function escapeHtml(str) {
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
 function logAction(msg) {
@@ -90,6 +393,15 @@ function logAction(msg) {
     entry.innerHTML = msg;
     actionLogEl.appendChild(entry);
     actionLogEl.scrollTop = actionLogEl.scrollHeight;
+    syncGameState();
+}
+
+function isLocalTurn() {
+    if (isSpectator) return false;
+    if (!isMultiplayer) return true;
+    const localPlayerName = localStorage.getItem('empireClimbMyName');
+    const cp = players[currentPlayerIndex];
+    return cp && cp.name === localPlayerName;
 }
 
 function updateUI() {
@@ -97,14 +409,15 @@ function updateUI() {
     rosterEl.innerHTML = '';
     players.forEach((p, i) => {
         const card = document.createElement('div');
-        card.className = `roster-card ${i === currentPlayerIndex ? 'active-turn' : ''}`;
-        card.style.borderColor = p.bankrupt ? '#333' : (i === currentPlayerIndex ? p.color : '');
-        card.style.opacity = p.bankrupt ? '0.5' : '1';
+        const isOffline = p.connected === false;
+        card.className = `roster-card ${i === currentPlayerIndex ? 'active-turn' : ''} ${isOffline ? 'offline' : ''}`;
+        card.style.borderColor = p.bankrupt ? '#333' : (isOffline ? '#ff2d2d' : (i === currentPlayerIndex ? p.color : ''));
+        card.style.opacity = p.bankrupt || isOffline ? '0.5' : '1';
         
         card.innerHTML = `
             <div class="roster-header">
-                <div class="roster-color" style="background:${p.bankrupt ? '#555' : p.color}"></div>
-                <div class="roster-name" style="${p.bankrupt ? 'text-decoration:line-through' : ''}">${p.name}</div>
+                <div class="roster-color" style="background:${p.bankrupt || isOffline ? '#555' : p.color}"></div>
+            <div class="roster-name" style="${p.bankrupt ? 'text-decoration:line-through' : ''}" title="${p.name}">${p.name}${isOffline ? ' <span style="font-size:0.7em; color:#ff5555; font-weight:bold; letter-spacing:0.05em;">(OFFLINE)</span>' : ''}</div>
             </div>
             <div class="roster-stats">
                 <div>Tokens: <span class="stat-val ${p.tokens <= 3 ? 'danger' : ''}">${p.tokens}</span></div>
@@ -143,15 +456,26 @@ function updateUI() {
 
     // Current Player
     const cp = players[currentPlayerIndex];
+    const myTurn = isLocalTurn();
     if(cp) {
         currentPlayerNameEl.textContent = cp.name;
         currentPlayerNameEl.style.color = cp.color;
-        btnBuyFlag.disabled = cp.tokens < 5 || cp.flags >= 12; // 3 min + 2 cost
-        btnPass.disabled = cp.bankrupt;
+        btnBuyFlag.disabled = !myTurn || cp.tokens < 5 || cp.flags >= 12; // 3 min + 2 cost
+        btnPass.disabled = !myTurn || cp.bankrupt;
+    }
+
+    // Enforce Turn Lock Body Class
+    if (!myTurn) {
+        document.body.classList.add('not-my-turn');
+    } else {
+        document.body.classList.remove('not-my-turn');
     }
 
     // Hand
     renderHand();
+
+    // Broadcast state update
+    syncGameState();
 }
 
 function renderHand() {
@@ -162,6 +486,7 @@ function renderHand() {
         return;
     }
     
+    const showActions = isLocalTurn();
     cp.hand.forEach((card, idx) => {
         const cEl = document.createElement('div');
         cEl.className = 'game-card';
@@ -170,18 +495,22 @@ function renderHand() {
             <div class="card-cost" style="position: absolute; top: 8px; right: 8px; font-size: 0.7em; background: rgba(255, 204, 0, 0.15); color: var(--yellow); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(255, 204, 0, 0.3); font-weight: bold;">🪙 ${card.cost || 0}</div>
             <div class="card-title" style="padding-right: 35px;">${card.name}</div>
             <div class="card-desc">${card.desc}</div>
+            ${showActions ? `
             <div class="card-actions" style="margin-top: 10px; display: flex; gap: 5px;">
                 <button class="play-btn" style="flex:1; padding:4px; font-size:0.7em; cursor:pointer; background:rgba(0,170,255,0.2); border:1px solid var(--blue-glow); color:var(--text); border-radius:3px;">Play</button>
                 <button class="waste-btn" style="flex:1; padding:4px; font-size:0.7em; cursor:pointer; background:rgba(255,45,45,0.2); border:1px solid var(--red-glow); color:var(--text); border-radius:3px;">Waste</button>
             </div>
+            ` : ''}
         `;
         
-        cEl.querySelector('.play-btn').addEventListener('click', () => {
-            playCard(idx);
-        });
-        cEl.querySelector('.waste-btn').addEventListener('click', () => {
-            wasteCard(idx);
-        });
+        if (showActions) {
+            cEl.querySelector('.play-btn').addEventListener('click', () => {
+                playCard(idx);
+            });
+            cEl.querySelector('.waste-btn').addEventListener('click', () => {
+                wasteCard(idx);
+            });
+        }
         
         handEl.appendChild(cEl);
     });
@@ -1280,7 +1609,7 @@ function endGame() {
         });
     });
     
-    // Sort by power points
+    // Sort by power points (alive only, for standard game outcome message)
     const sorted = [...players].filter(p => !p.bankrupt).sort((a,b) => b.powerPoints - a.powerPoints);
     
     let winnerMsg = "<h3>GAME OVER - FINAL SCORES</h3><ul style='list-style:none; padding:0;'>";
@@ -1301,6 +1630,129 @@ function endGame() {
     if(btnPass) btnPass.disabled = true;
     if(btnEndGame) btnEndGame.disabled = true;
     handEl.innerHTML = '<div style="color:#666; font-size:0.8rem; text-align:center;">Game Over</div>';
+
+    // Populate and show the visual Win Screen modal
+    const winScreen = document.getElementById('win-screen');
+    const winnerNameEl = document.getElementById('winner-name');
+    const winnerAvatarEl = document.getElementById('winner-avatar');
+    const winnerScoreEl = document.getElementById('winner-score');
+    const leaderboardEl = document.getElementById('leaderboard-list');
+
+    if (sorted.length > 0) {
+        const winner = sorted[0];
+        winnerNameEl.textContent = winner.name;
+        winnerNameEl.style.color = winner.color;
+        winnerAvatarEl.textContent = winner.name.slice(0, 2).toUpperCase();
+        winnerAvatarEl.style.color = winner.color;
+        winnerAvatarEl.style.borderColor = winner.color;
+        winnerScoreEl.textContent = `${winner.powerPoints} Power Points`;
+    } else {
+        winnerNameEl.textContent = "NO WINNERS";
+        winnerNameEl.style.color = "var(--red-glow)";
+        winnerAvatarEl.textContent = "💀";
+        winnerAvatarEl.style.color = "var(--red-glow)";
+        winnerAvatarEl.style.borderColor = "var(--red-glow)";
+        winnerScoreEl.textContent = "All Empires Have Fallen";
+    }
+
+    // Rank all players (including bankrupt, but alive rank higher)
+    const rankedPlayers = [...players].sort((a, b) => {
+        if (a.bankrupt !== b.bankrupt) {
+            return a.bankrupt ? 1 : -1;
+        }
+        return b.powerPoints - a.powerPoints;
+    });
+
+    leaderboardEl.innerHTML = '';
+    rankedPlayers.forEach((p, idx) => {
+        const row = document.createElement('div');
+        row.className = 'leaderboard-row';
+        
+        const rankClass = idx === 0 ? 'rank-1' : (idx === 1 ? 'rank-2' : (idx === 2 ? 'rank-3' : ''));
+        const statusClass = p.bankrupt ? 'status-bankrupt' : 'status-alive';
+        const statusText = p.bankrupt ? 'Bankrupt' : 'Active';
+        
+        row.innerHTML = `
+            <div class="leaderboard-rank ${rankClass}">#${idx + 1}</div>
+            <div class="leaderboard-pcolor" style="color: ${p.color}; background-color: ${p.color}"></div>
+            <div class="leaderboard-pname" style="color: ${p.color}">${p.name}</div>
+            <div class="leaderboard-status ${statusClass}">${statusText}</div>
+            <div class="leaderboard-pscore">${p.powerPoints} pts</div>
+        `;
+        leaderboardEl.appendChild(row);
+    });
+
+    if (winScreen) {
+        winScreen.classList.add('visible');
+    }
+}
+
+function resetGame() {
+    // 1. Reset player stats
+    players.forEach(p => {
+        p.tokens = 15;
+        p.flags = 5;
+        p.bankrupt = false;
+        p.hand = [];
+        for (let i = 0; i < 5; i++) {
+            p.hand.push(drawRandomCard());
+        }
+    });
+
+    // 2. Reset board state
+    Object.keys(board).forEach(id => {
+        board[id].owner = null;
+        board[id].power = 0;
+    });
+
+    // 3. Reset segment elements in DOM
+    document.querySelectorAll('.segment').forEach(seg => {
+        seg.classList.remove('claimed');
+        seg.style.borderColor = '';
+        seg.style.boxShadow = '';
+        const ownerLabel = seg.querySelector('.segment-owner');
+        if (ownerLabel) ownerLabel.remove();
+    });
+
+    // 4. Reset engine parameters
+    currentPlayerIndex = 0;
+    round = 1;
+    activeEvent = null;
+    lastAction = null;
+    targetingMode = null;
+    eventModifiers = {
+        revenueMultiplier: 1,
+        l3RevenueMultiplier: 1,
+        attacksAllowed: true,
+        l1FreeNoCard: false,
+        l2FirstFree: false,
+        l4NoCard: false,
+        l1PlayersFreeL2: false
+    };
+
+    // 5. Reset UI components
+    const eventBox = document.getElementById('active-event-box');
+    if (eventBox) eventBox.style.display = 'none';
+    if (roundCounterEl) roundCounterEl.textContent = round;
+    
+    // Clear and log fresh start
+    actionLogEl.innerHTML = '';
+    logAction('A new battle begins. The Empire Wars have restarted!');
+
+    // 6. Enable buttons
+    if (btnBuyFlag) btnBuyFlag.disabled = false;
+    if (btnPass) btnPass.disabled = false;
+    if (btnEndGame) btnEndGame.disabled = false;
+
+    // 7. Hide Win Screen
+    const winScreen = document.getElementById('win-screen');
+    if (winScreen) {
+        winScreen.classList.remove('visible');
+    }
+
+    // 8. Re-init turn
+    updateUI();
+    startTurn();
 }
 
 // Particle system
@@ -1316,6 +1768,13 @@ if (particlesEl) {
         particlesEl.appendChild(p);
     }
 }
+
+// Wire up Win Screen buttons
+const rematchBtn = document.getElementById('btn-rematch');
+const lobbyBtn = document.getElementById('btn-lobby');
+
+if (rematchBtn) rematchBtn.addEventListener('click', resetGame);
+if (lobbyBtn) lobbyBtn.addEventListener('click', () => { window.location.href = 'players.html'; });
 
 // Boot
 initGame();

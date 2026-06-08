@@ -275,9 +275,25 @@
     });
 
     // ── Room joined (I joined someone else's room) ────────────────────
-    socket.on('room-joined', ({ roomCode, players, isHost: amIHost }) => {
+    socket.on('room-joined', ({ roomCode, players, isHost: amIHost, isSpectator, gameState }) => {
         setLoading(btnJoin, false);
         clearError(joinErrEl);
+        
+        if (isSpectator) {
+            showToast(`Entering Spectator Mode...`, 'success');
+            localStorage.setItem('empireClimbRoomCode', roomCode);
+            localStorage.setItem('empireClimbIsMultiplayer', 'true');
+            if (gameState) {
+                localStorage.setItem('empireClimbSpectatorInitialState', JSON.stringify(gameState));
+            } else {
+                localStorage.removeItem('empireClimbSpectatorInitialState');
+            }
+            setTimeout(() => {
+                window.location.href = `game.html?room=${roomCode}&spectator=true`;
+            }, 1000);
+            return;
+        }
+
         enterLobby(roomCode, players, amIHost);
         showToast(`Entered Room ${roomCode}!`, 'success');
         console.log(`[lobby] joined room: ${roomCode}`);
@@ -372,6 +388,7 @@
         }
 
         myPlayerName = name;
+        localStorage.setItem('empireClimbMyName', name);
         setLoading(btnCreate, true);
         socket.emit('create-room', { playerName: name });
     });
@@ -399,6 +416,7 @@
         }
 
         myPlayerName = name;
+        localStorage.setItem('empireClimbMyName', name);
         setLoading(btnJoin, true);
         socket.emit('join-room', { roomCode: code, playerName: name });
     });
