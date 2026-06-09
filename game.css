@@ -695,146 +695,225 @@
     text-transform: uppercase;
 }
 
-/* Responsive Landscape Mobile queries */
+/* ============================================================
+   MOBILE LANDSCAPE — complete responsive overhaul
+   Target: phones in landscape (max-width 1024px)
+   ============================================================ */
 @media (max-width: 1024px) and (orientation: landscape) {
+
+    /* ── Header ── */
     .game-header {
-        height: 50px;
-        padding: 0 10px;
+        height: 44px;
+        padding: 0 8px;
+        flex-shrink: 0;
     }
     .players-roster {
-        gap: 8px;
+        gap: 6px;
+        padding: 2px 0;
     }
     .roster-card {
-        padding: 4px 8px;
-        gap: 6px;
-        border-radius: 5px;
-    }
-    .roster-name {
-        font-size: 0.75rem;
-        max-width: 60px;
-    }
-    .roster-stats {
-        font-size: 0.65rem;
-        gap: 6px;
-    }
-    .roster-hand {
-        margin-left: 4px;
-        height: 16px;
-        padding-right: 18px;
-    }
-    .mini-card-back {
-        width: 10px;
-        height: 14px;
-        margin-left: -6px;
-    }
-    .hand-count-badge {
-        width: 12px;
-        height: 12px;
-        font-size: 0.5rem;
-    }
-    .game-table {
-        grid-template-columns: 160px 1fr 160px;
-        height: calc(100vh - 155px);
-        padding: 5px 10px;
-        gap: 8px;
-    }
-    .table-side-panel {
-        padding-top: 5px;
-    }
-    .action-log-wrap {
-        padding: 8px;
-    }
-    .log-title {
-        font-size: 0.55rem;
-        margin-bottom: 4px;
-    }
-    .action-log {
-        font-size: 0.75rem;
-    }
-    .commands-panel {
-        padding: 8px;
-    }
-    .sidebar-title {
-        margin-bottom: 8px;
-        padding-bottom: 4px;
-        font-size: 0.75rem;
-    }
-    .current-turn-indicator {
-        padding: 6px;
-        margin-bottom: 8px;
-    }
-    .current-turn-indicator span {
-        font-size: 0.9rem;
-    }
-    .action-buttons {
-        gap: 6px;
-    }
-    .action-btn {
-        padding: 8px;
-        font-size: 0.65rem;
+        padding: 3px 7px;
+        gap: 5px;
         border-radius: 4px;
     }
-    .table-cards-zone {
-        gap: 15px;
-        margin-top: 5px;
+    .roster-name {
+        font-size: 0.7rem;
+        max-width: 55px;
     }
-    .deck-pile, .active-card-slot, .discard-pile {
-        width: 70px;
-        height: 95px;
-        border-radius: 5px;
+    .roster-stats {
+        font-size: 0.6rem;
+        gap: 5px;
     }
-    .deck-label {
-        font-size: 0.55rem;
+    .roster-hand {
+        margin-left: 3px;
+        height: 14px;
+        padding-right: 15px;
     }
-    .active-card-slot span, .discard-pile span {
+    .mini-card-back {
+        width: 8px;
+        height: 12px;
+        margin-left: -5px;
+    }
+    .hand-count-badge {
+        width: 11px;
+        height: 11px;
+        font-size: 0.45rem;
+    }
+
+    /* ── Game Table (3-column grid: chronicle | board | commands) ── */
+    .game-table {
+        /* Reduce side panels so board gets maximum space */
+        grid-template-columns: 130px 1fr 130px;
+        /* Fill remaining height after header (44px) and footer (125px) */
+        height: calc(100vh - 44px - 125px);
+        padding: 4px 6px;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+    .table-side-panel {
+        padding-top: 0;
+        overflow: hidden;
+    }
+
+    /* ── Chronicle (left panel) ── */
+    .action-log-wrap {
+        height: 100%;
+        padding: 6px;
+    }
+    .log-title {
         font-size: 0.5rem;
+        margin-bottom: 3px;
+        letter-spacing: 0.1em;
     }
-    .game-footer {
-        height: 140px;
-        padding-bottom: 5px;
+    .action-log {
+        font-size: 0.65rem;
     }
-    .hand-header {
-        font-size: 0.55rem;
-        margin-bottom: 4px;
+
+    /* ── Commands panel (right panel) ── */
+    .commands-panel {
+        padding: 6px;
     }
-    .player-hand {
-        height: 100px;
+    .sidebar-title {
+        font-size: 0.6rem;
+        margin-bottom: 5px;
+        padding-bottom: 3px;
     }
-    .game-card {
-        width: 82px;
-        height: 110px;
-        padding: 7px;
-        border-radius: 6px;
-    }
-    .game-card .card-cost {
-        width: 16px;
-        height: 16px;
-        font-size: 0.5rem;
-        top: -5px;
-        right: -5px;
-    }
-    .game-card .card-title {
+    .current-turn-indicator {
+        padding: 5px;
+        margin-bottom: 6px;
         font-size: 0.6rem;
     }
-    .game-card .card-desc {
+    .current-turn-indicator span {
+        font-size: 0.8rem;
+        margin-top: 2px;
+    }
+    .action-buttons {
+        gap: 5px;
+    }
+    .action-btn {
+        padding: 7px 6px;
+        font-size: 0.58rem;
+        border-radius: 4px;
+        letter-spacing: 0.05em;
+        touch-action: manipulation;
+    }
+
+    /* ── Board area (center column) ── */
+    .board-area {
+        flex: 1;
+        min-width: 0;
+        min-height: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .empire-triangle {
+        transform: none;
+        width: 100%;
+        max-width: 360px;
+        margin: 0 auto;
+    }
+    /* Compact board segments */
+    .empire-triangle .level-1 .segment {
+        width: 46px;
+        height: 36px;
+    }
+    .empire-triangle .level-2 .segment {
+        width: 56px;
+        height: 42px;
+    }
+    .empire-triangle .level-3 .segment {
+        width: 66px;
+        height: 48px;
+    }
+    .empire-triangle .level-4 .segment {
+        width: 130px;
+        height: 54px;
+    }
+    .empire-triangle .segment div {
+        font-size: 0.42rem !important;
+        line-height: 1;
+    }
+    .empire-triangle .segment.claimed .segment-owner {
+        font-size: 0.35rem;
+        padding: 0 2px;
+        margin-top: 1px;
+    }
+    .empire-triangle .triangle-level {
+        gap: 3px;
+        margin-bottom: 3px;
+    }
+
+    /* ── Deck zone ── */
+    .table-cards-zone {
+        gap: 10px;
+        margin-top: 4px;
+    }
+    .deck-pile, .active-card-slot, .discard-pile {
+        width: 62px;
+        height: 84px;
+        border-radius: 4px;
+    }
+    .deck-label {
+        font-size: 0.48rem;
+    }
+    .active-card-slot span, .discard-pile span {
+        font-size: 0.44rem;
+    }
+
+    /* ── Footer / Player Hand ── */
+    .game-footer {
+        height: 125px;
+        padding-bottom: 4px;
+        flex-shrink: 0;
+    }
+    .hand-header {
         font-size: 0.5rem;
+        margin-bottom: 3px;
+    }
+    .player-hand {
+        height: 90px;
+    }
+
+    /* ── Cards in hand ── */
+    .game-card {
+        width: 75px;
+        height: 98px;
+        padding: 6px;
+        border-radius: 5px;
+    }
+    .game-card .card-cost {
+        width: 15px;
+        height: 15px;
+        font-size: 0.48rem;
+        top: -4px;
+        right: -4px;
+    }
+    .game-card .card-title {
+        font-size: 0.55rem;
+    }
+    .game-card .card-desc {
+        font-size: 0.48rem;
         line-height: 1.1;
         margin-top: 2px;
     }
     .game-card .card-actions {
-        margin-top: 4px;
+        margin-top: 3px;
         gap: 3px;
     }
-    /* Make buttons large enough to tap on mobile */
+    /* Tappable buttons */
     .game-card .card-actions button {
-        font-size: 0.55rem !important;
+        font-size: 0.52rem !important;
         padding: 4px 2px !important;
-        min-height: 22px;
-        border-radius: 4px !important;
+        min-height: 20px;
+        border-radius: 3px !important;
+        touch-action: manipulation;
     }
+
+    /* Hover & active tap state */
     .game-card:hover,
     .game-card.active {
-        transform: translate(var(--card-x, 0px), calc(var(--card-y, 0px) - 15px)) rotate(var(--card-angle, 0deg)) scale(1.1);
+        transform: translate(var(--card-x, 0px), calc(var(--card-y, 0px) - 12px)) rotate(var(--card-angle, 0deg)) scale(1.08);
         z-index: 9500 !important;
     }
     .game-card.active .card-actions {
@@ -843,8 +922,7 @@
     }
 }
 
-
-/* Rotate Overlay */
+/* ── Rotate Overlay (shown in portrait) ── */
 .rotate-overlay {
     display: none;
     position: fixed;
@@ -864,131 +942,18 @@
 }
 
 @keyframes rotatePhone {
-    0% { transform: rotate(0deg); }
-    50% { transform: rotate(90deg); }
+    0%   { transform: rotate(0deg); }
+    50%  { transform: rotate(90deg); }
     100% { transform: rotate(90deg); }
 }
 
-/* Portrait Mobile Layout: Force Rotate Overlay */
+/* Portrait Mobile: show rotate prompt, hide game */
 @media (max-width: 1024px) and (orientation: portrait) {
     .game-container {
         display: none !important;
     }
     .rotate-overlay {
         display: flex;
-    }
-}
-
-@media (max-width: 1024px) and (orientation: landscape) {
-    .game-container {
-        grid-template-columns: 1fr 280px;
-        height: 100vh;
-        overflow: hidden;
-    }
-    .sidebar {
-        padding: 12px;
-        min-height: 0;
-        overflow-y: auto;
-    }
-    .main-arena {
-        padding: 10px;
-        min-width: 0;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-    }
-    .board-area {
-        flex: 1;
-        min-width: 0;
-        min-height: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 4px 0;
-    }
-    .sidebar-title {
-        font-size: 0.9rem;
-        margin-bottom: 8px;
-        padding-bottom: 6px;
-    }
-    .empire-triangle {
-        transform: none; /* Disable transform scaling to prevent blank layouts */
-        width: 100%;
-        max-width: 320px; /* Constrain width so it fits within small mobile landscape */
-        margin: 0 auto;
-    }
-    /* Tiny board segments for landscape mobile */
-    .empire-triangle .level-1 .segment {
-        width: 44px;
-        height: 34px;
-    }
-    .empire-triangle .level-2 .segment {
-        width: 52px;
-        height: 40px;
-    }
-    .empire-triangle .level-3 .segment {
-        width: 62px;
-        height: 46px;
-    }
-    .empire-triangle .level-4 .segment {
-        width: 120px;
-        height: 52px;
-    }
-    /* Small text inside segments */
-    .empire-triangle .segment div {
-        font-size: 0.42rem !important;
-        line-height: 1;
-    }
-    .empire-triangle .segment.claimed .segment-owner {
-        font-size: 0.35rem;
-        padding: 0px 2px;
-        margin-top: 1px;
-    }
-    .empire-triangle .triangle-level {
-        gap: 3px;
-        margin-bottom: 3px;
-    }
-    .action-log-wrap {
-        height: 100%;
-        padding: 8px;
-    }
-    .action-btn {
-        padding: 8px 12px;
-        font-size: 0.7rem;
-    }
-    .players-roster {
-        gap: 6px;
-        margin-bottom: 8px;
-        padding: 4px 8px;
-    }
-    .roster-card {
-        padding: 4px 8px;
-        min-width: 100px;
-        max-width: none;
-        gap: 8px;
-    }
-    .roster-name {
-        font-size: 0.75rem;
-    }
-    .roster-stats {
-        font-size: 0.6rem;
-        gap: 4px;
-    }
-    .current-turn-indicator {
-        padding: 8px;
-        margin-bottom: 12px;
-    }
-    .current-turn-indicator span {
-        font-size: 1rem;
-    }
-    .game-card {
-        padding: 8px;
-    }
-    .game-card .card-title {
-        font-size: 0.8rem;
-    }
-    .game-card .card-desc {
-        font-size: 0.65rem;
     }
 }
 
