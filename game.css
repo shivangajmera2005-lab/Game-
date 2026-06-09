@@ -742,17 +742,23 @@
 
     /* ── Game Table (3-column grid: chronicle | board | commands) ── */
     .game-table {
-        /* Reduce side panels so board gets maximum space */
         grid-template-columns: 130px 1fr 130px;
-        /* Fill remaining height after header (44px) and footer (125px) */
+        /* Let game-table grow taller than the viewport so board is fully scrollable */
         height: calc(100vh - 44px - 125px);
         padding: 4px 6px;
         gap: 6px;
         flex-shrink: 0;
+        /* Allow the center column to be scrolled, side panels stay fixed */
+        overflow: visible;
     }
     .table-side-panel {
         padding-top: 0;
         overflow: hidden;
+        /* Keep side panels anchored — they don't scroll */
+        position: sticky;
+        top: 0;
+        align-self: start;
+        max-height: calc(100vh - 44px - 125px);
     }
 
     /* ── Chronicle (left panel) ── */
@@ -798,14 +804,22 @@
         touch-action: manipulation;
     }
 
-    /* ── Board area (center column) ── */
+    /* ── Board area (center column) — scrollable ── */
+    .table-center {
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch; /* Smooth momentum scrolling on iOS */
+        /* Give enough height so the full board + deck zone fits */
+        max-height: calc(100vh - 44px - 125px);
+        scroll-behavior: smooth;
+    }
     .board-area {
-        flex: 1;
+        flex: none;  /* Don't stretch — let board be its natural size */
         min-width: 0;
-        min-height: 0;
         display: flex;
         align-items: center;
         justify-content: center;
+        padding: 4px 0 8px;
     }
     .empire-triangle {
         transform: none;
