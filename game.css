@@ -524,13 +524,15 @@
     z-index: 5;
 }
 
-.game-card:hover {
+.game-card:hover,
+.game-card.active {
     transform: translate(var(--card-x, 0px), calc(var(--card-y, 0px) - 10px)) rotate(var(--card-angle, 0deg)) scale(1.05);
     z-index: 9500 !important;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
 
-.game-card:hover .card-actions {
+.game-card:hover .card-actions,
+.game-card.active .card-actions {
     opacity: 1;
     pointer-events: auto;
 }
@@ -540,7 +542,8 @@
     border-color: rgba(255, 45, 45, 0.3);
     background: linear-gradient(135deg, #221212 0%, #0d0606 100%);
 }
-.game-card.card-attack:hover {
+.game-card.card-attack:hover,
+.game-card.card-attack.active {
     border-color: var(--red-glow);
     box-shadow: 0 15px 30px rgba(255, 45, 45, 0.35), 0 0 20px rgba(255, 45, 45, 0.25);
 }
@@ -549,7 +552,8 @@
     border-color: rgba(0, 255, 136, 0.3);
     background: linear-gradient(135deg, #122218 0%, #060d09 100%);
 }
-.game-card.card-defence:hover {
+.game-card.card-defence:hover,
+.game-card.card-defence.active {
     border-color: #00FF88;
     box-shadow: 0 15px 30px rgba(0, 255, 136, 0.35), 0 0 20px rgba(0, 255, 136, 0.25);
 }
@@ -558,7 +562,8 @@
     border-color: rgba(0, 170, 255, 0.3);
     background: linear-gradient(135deg, #121a2c 0%, #06090f 100%);
 }
-.game-card.card-claim-l1:hover {
+.game-card.card-claim-l1:hover,
+.game-card.card-claim-l1.active {
     border-color: var(--blue-glow);
     box-shadow: 0 15px 30px rgba(0, 170, 255, 0.35), 0 0 20px rgba(0, 170, 255, 0.25);
 }
@@ -567,7 +572,8 @@
     border-color: rgba(255, 204, 0, 0.3);
     background: linear-gradient(135deg, #241e12 0%, #0f0c07 100%);
 }
-.game-card.card-claim-l2:hover {
+.game-card.card-claim-l2:hover,
+.game-card.card-claim-l2.active {
     border-color: var(--yellow);
     box-shadow: 0 15px 30px rgba(255, 204, 0, 0.35), 0 0 20px rgba(255, 204, 0, 0.25);
 }
@@ -576,7 +582,8 @@
     border-color: rgba(255, 45, 45, 0.3);
     background: linear-gradient(135deg, #241212 0%, #0f0707 100%);
 }
-.game-card.card-claim-l3:hover {
+.game-card.card-claim-l3:hover,
+.game-card.card-claim-l3.active {
     border-color: var(--red-glow);
     box-shadow: 0 15px 30px rgba(255, 45, 45, 0.35), 0 0 20px rgba(255, 45, 45, 0.25);
 }
@@ -585,7 +592,8 @@
     border-color: rgba(255, 215, 0, 0.4);
     background: linear-gradient(135deg, #2a1f0a 0%, #120d04 100%);
 }
-.game-card.card-claim-l4:hover {
+.game-card.card-claim-l4:hover,
+.game-card.card-claim-l4.active {
     border-color: var(--gold);
     box-shadow: 0 15px 30px rgba(255, 215, 0, 0.45), 0 0 25px rgba(255, 215, 0, 0.3);
 }
@@ -930,7 +938,7 @@
         margin-bottom: 3px;
     }
     .action-log-wrap {
-        height: 80px; /* smaller log on landscape mobile */
+        height: 100%;
         padding: 8px;
     }
     .action-btn {

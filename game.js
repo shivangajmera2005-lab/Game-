@@ -571,6 +571,17 @@ function renderHand() {
             ` : ''}
         `;
         
+        cEl.addEventListener('click', (e) => {
+            if (e.target.closest('.card-actions')) return;
+            const wasActive = cEl.classList.contains('active');
+            document.querySelectorAll('.game-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            if (!wasActive) {
+                cEl.classList.add('active');
+            }
+        });
+
         if (showActions) {
             cEl.querySelector('.play-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -585,6 +596,14 @@ function renderHand() {
         handEl.appendChild(cEl);
     });
 }
+
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.game-card')) {
+        document.querySelectorAll('.game-card').forEach(card => {
+            card.classList.remove('active');
+        });
+    }
+});
 
 function startTurn() {
     overlayedCardIdx = -1;
