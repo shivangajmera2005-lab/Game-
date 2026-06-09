@@ -238,6 +238,7 @@
     text-align: center;
     cursor: pointer;
     border-width: 2px;
+    touch-action: manipulation; /* Prevent tap delay on mobile */
 }
 
 .segment.claimed {
@@ -468,6 +469,7 @@
     transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s ease, border-color 0.3s ease;
     user-select: none;
     box-sizing: border-box;
+    touch-action: manipulation; /* Prevent 300ms tap delay on mobile */
 }
 
 .game-card .card-cost {
@@ -533,8 +535,8 @@
 
 .game-card:hover .card-actions,
 .game-card.active .card-actions {
-    opacity: 1;
-    pointer-events: auto;
+    opacity: 1 !important;
+    pointer-events: auto !important;
 }
 
 /* Card design modifiers based on type */
@@ -731,10 +733,10 @@
         font-size: 0.5rem;
     }
     .game-table {
-        grid-template-columns: 190px 1fr 190px;
-        height: calc(100vh - 170px);
+        grid-template-columns: 160px 1fr 160px;
+        height: calc(100vh - 155px);
         padding: 5px 10px;
-        gap: 10px;
+        gap: 8px;
     }
     .table-side-panel {
         padding-top: 5px;
@@ -788,7 +790,7 @@
         font-size: 0.5rem;
     }
     .game-footer {
-        height: 120px;
+        height: 140px;
         padding-bottom: 5px;
     }
     .hand-header {
@@ -796,39 +798,48 @@
         margin-bottom: 4px;
     }
     .player-hand {
-        height: 80px;
+        height: 100px;
     }
     .game-card {
-        width: 70px;
-        height: 95px;
-        padding: 6px;
-        border-radius: 5px;
+        width: 82px;
+        height: 110px;
+        padding: 7px;
+        border-radius: 6px;
     }
     .game-card .card-cost {
-        width: 14px;
-        height: 14px;
+        width: 16px;
+        height: 16px;
         font-size: 0.5rem;
-        top: -4px;
-        right: -4px;
+        top: -5px;
+        right: -5px;
     }
     .game-card .card-title {
-        font-size: 0.55rem;
+        font-size: 0.6rem;
     }
     .game-card .card-desc {
-        font-size: 0.45rem;
+        font-size: 0.5rem;
         line-height: 1.1;
         margin-top: 2px;
     }
     .game-card .card-actions {
-        margin-top: 3px;
+        margin-top: 4px;
+        gap: 3px;
     }
+    /* Make buttons large enough to tap on mobile */
     .game-card .card-actions button {
-        font-size: 0.45rem !important;
-        padding: 1px !important;
+        font-size: 0.55rem !important;
+        padding: 4px 2px !important;
+        min-height: 22px;
+        border-radius: 4px !important;
     }
-    .game-card:hover {
-        transform: rotate(var(--card-angle, 0deg)) translate(var(--card-x, 0px), calc(var(--card-y, 0px) - 30px)) scale(1.12);
-        z-index: 100 !important;
+    .game-card:hover,
+    .game-card.active {
+        transform: translate(var(--card-x, 0px), calc(var(--card-y, 0px) - 15px)) rotate(var(--card-angle, 0deg)) scale(1.1);
+        z-index: 9500 !important;
+    }
+    .game-card.active .card-actions {
+        opacity: 1 !important;
+        pointer-events: auto !important;
     }
 }
 
