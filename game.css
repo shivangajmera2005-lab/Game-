@@ -2,14 +2,15 @@
    GAME LAYOUT
    ============================================================ */
 .game-container {
-    display: grid;
-    grid-template-columns: 1fr 380px;
+    display: flex;
+    flex-direction: column;
     height: 100vh;
     width: 100vw;
-    background: var(--bg);
+    background: radial-gradient(circle at 50% 50%, #151525 0%, #06060c 100%);
     position: relative;
     z-index: 2;
     overflow: hidden;
+    justify-content: space-between;
 }
 
 /* Lock board interaction during modals */
@@ -18,121 +19,81 @@
     user-select: none;
 }
 
-.sidebar {
-    background: rgba(4, 4, 10, 0.8);
-    border-right: 1px solid var(--border);
-    padding: 24px;
+/* TOP: Opponent Hand & Stats Bar */
+.game-header {
+    height: 90px;
+    background: rgba(10, 10, 18, 0.7);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 215, 0, 0.08);
     display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    min-height: 0;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    padding: 0 20px;
 }
 
-.actions-sidebar {
-    border-right: none;
-    border-left: 1px solid var(--border);
-}
-
-.sidebar-title {
-    font-family: 'Cinzel', serif;
-    font-size: 1.2rem;
-    color: var(--gold);
-    text-align: center;
-    letter-spacing: 0.2em;
-    margin-bottom: 24px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--border);
-}
-
-/* Roster */
 .players-roster {
     display: flex;
-    flex-direction: row;
-    justify-content: center; /* Fallback */
-    justify-content: safe center;
     gap: 16px;
     width: 100%;
-    margin-bottom: 16px;
-    overflow-x: auto;
-    padding: 8px 16px;
-    box-sizing: border-box;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-}
-
-/* Scrollbar styling for player roster */
-.players-roster::-webkit-scrollbar {
-    height: 6px;
-}
-.players-roster::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 3px;
-}
-.players-roster::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 3px;
-}
-.players-roster::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
-}
-
-.roster-card {
-    flex-shrink: 0; /* Prevent card from shrinking */
-    background: #111113;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    padding: 10px 18px;
-    display: flex;
-    flex-direction: row;
+    justify-content: center;
     align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-    box-sizing: border-box;
+    overflow-x: auto;
+    padding: 5px 0;
+}
+
+/* Roster Cards (Player plates at the top) */
+.roster-card {
+    background: rgba(20, 20, 30, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    position: relative;
+    z-index: 5;
 }
 
 .roster-card.active-turn {
     border-color: var(--gold);
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.25);
-    transform: scale(1.02);
-    background: rgba(255, 215, 0, 0.05);
-}
-
-.roster-card.offline {
-    border-style: dashed !important;
-    background: rgba(255, 45, 45, 0.05) !important;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+    background: rgba(255, 215, 0, 0.04);
+    transform: translateY(-2px);
 }
 
 .roster-header {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 0;
 }
 
 .roster-color {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     flex-shrink: 0;
 }
 
 .roster-name {
-    font-family: system-ui, sans-serif;
-    font-weight: 600;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
     font-size: 0.95rem;
     color: white;
+    max-width: 100px;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .roster-stats {
     display: flex;
-    flex-direction: row;
-    gap: 12px;
-    font-family: 'Orbitron', monospace;
-    font-size: 0.78rem;
+    gap: 10px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.8rem;
     color: var(--text-dim);
-    flex-shrink: 0;
 }
 
 .roster-stats div {
@@ -143,24 +104,99 @@
     color: var(--gold-light);
     font-size: 0.85rem;
 }
+
 .stat-val.danger {
     color: var(--red);
 }
 
-/* Main Arena */
-.main-arena {
+/* Roster Hand (Opponent cards back container) */
+.roster-hand {
     display: flex;
-    flex-direction: column;
-    padding: 24px;
+    align-items: center;
+    margin-left: 10px;
     position: relative;
-    min-width: 0;
+    height: 24px;
+    padding-right: 25px; /* space for badge */
 }
 
+.mini-card-back {
+    width: 14px;
+    height: 20px;
+    background: linear-gradient(135deg, #a6750c 0%, #e5a91e 100%);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 2px;
+    margin-left: -8px;
+    box-shadow: -2px 0 5px rgba(0,0,0,0.5);
+    transition: transform 0.2s;
+}
+
+.mini-card-back:first-child {
+    margin-left: 0;
+}
+
+.mini-card-back:hover {
+    transform: translateY(-4px) scale(1.1);
+    z-index: 10;
+}
+
+.hand-count-badge {
+    position: absolute;
+    right: 0;
+    background: rgba(0,0,0,0.6);
+    color: var(--gold-light);
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    font-size: 0.65rem;
+    font-family: 'Orbitron', monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* CENTER: The Game Table */
+.game-table {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 280px 1fr 280px;
+    height: calc(100vh - 320px);
+    position: relative;
+    z-index: 5;
+    padding: 10px 20px;
+    gap: 20px;
+    align-items: stretch;
+}
+
+.table-side-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    z-index: 10;
+    padding-top: 10px;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.table-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    position: relative;
+}
+
+/* Board Area */
 .board-area {
     flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 100%;
 }
 
 .empire-triangle {
@@ -170,23 +206,23 @@
 
 /* Enlarge board segments for larger space */
 .empire-triangle .level-1 .segment {
-    width: 110px;
-    height: 85px;
+    width: 90px;
+    height: 70px;
     font-size: 0.65rem;
 }
 .empire-triangle .level-2 .segment {
-    width: 125px;
-    height: 100px;
+    width: 100px;
+    height: 80px;
     font-size: 0.65rem;
 }
 .empire-triangle .level-3 .segment {
-    width: 140px;
-    height: 110px;
+    width: 110px;
+    height: 90px;
     font-size: 0.65rem;
 }
 .empire-triangle .level-4 .segment {
-    width: 250px;
-    height: 125px;
+    width: 180px;
+    height: 100px;
     font-size: 0.8rem;
 }
 .empire-triangle .triangle-level {
@@ -218,15 +254,21 @@
     margin-top: 4px;
 }
 
-/* Action Log */
+
+
+/* Action Log widget */
 .action-log-wrap {
-    height: 200px;
-    background: rgba(0,0,0,0.4);
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    background: rgba(10, 10, 18, 0.5);
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 16px;
     display: flex;
     flex-direction: column;
+    backdrop-filter: blur(5px);
+    overflow: hidden;
 }
 
 .log-title {
@@ -240,6 +282,7 @@
 .action-log {
     flex: 1;
     overflow-y: auto;
+    min-height: 0;
     font-family: 'Rajdhani', sans-serif;
     font-size: 0.9rem;
     display: block;
@@ -272,21 +315,50 @@
     color: white;
 }
 
-/* Commands */
-.current-turn-indicator {
-    background: rgba(255, 215, 0, 0.1);
-    border: 1px solid var(--gold);
-    padding: 16px;
+.commands-panel {
+    background: rgba(10, 10, 18, 0.5);
+    border: 1px solid var(--border);
     border-radius: 8px;
+    padding: 16px;
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    backdrop-filter: blur(5px);
+    overflow-y: auto;
+}
+
+/* Custom Scrollbar for Commands Panel */
+.commands-panel::-webkit-scrollbar {
+    width: 6px;
+}
+.commands-panel::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 3px;
+}
+.commands-panel::-webkit-scrollbar-thumb {
+    background: rgba(255, 215, 0, 0.25);
+    border-radius: 3px;
+    border: 1px solid rgba(255, 215, 0, 0.1);
+}
+.commands-panel::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 215, 0, 0.45);
+}
+
+.current-turn-indicator {
+    background: rgba(255, 215, 0, 0.05);
+    border: 1px solid var(--border2);
+    padding: 12px;
+    border-radius: 6px;
     text-align: center;
     font-family: 'Rajdhani', sans-serif;
     color: var(--gold);
-    margin-bottom: 24px;
+    margin-bottom: 15px;
 }
 
 .current-turn-indicator span {
     display: block;
-    font-size: 1.4rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: white;
     margin-top: 4px;
@@ -295,18 +367,18 @@
 .action-buttons {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 .action-btn {
-    background: #111113;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(20, 20, 30, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     color: white;
-    padding: 14px;
+    padding: 12px;
     border-radius: 6px;
     font-family: 'Orbitron', monospace;
-    font-size: 0.8rem;
-    letter-spacing: 0.1em;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
     cursor: pointer;
     transition: all 0.2s;
     text-transform: uppercase;
@@ -314,7 +386,8 @@
 
 .action-btn:hover:not(:disabled) {
     border-color: white;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 10px rgba(255,255,255,0.1);
 }
 
 .action-btn:disabled {
@@ -323,48 +396,206 @@
 }
 
 .end-turn-btn {
-    background: var(--gold);
-    color: black;
-    border-color: var(--gold);
+    background: rgba(255, 45, 45, 0.1);
+    border-color: var(--red-glow);
+    color: var(--red-glow);
     font-weight: 700;
 }
+
 .end-turn-btn:hover:not(:disabled) {
-    background: var(--gold-light);
-    border-color: var(--gold-light);
+    background: rgba(255, 45, 45, 0.25) !important;
+    border-color: var(--red-glow) !important;
 }
 
-/* Hand Area */
-.player-hand {
+/* BOTTOM: Player Hand Zone */
+.game-footer {
+    height: 230px;
+    background: linear-gradient(0deg, rgba(10, 10, 18, 0.95) 0%, rgba(10, 10, 18, 0.5) 100%);
+    border-top: 1px solid rgba(255, 215, 0, 0.08);
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    padding-bottom: 15px;
+    position: relative;
+    z-index: 20;
+    box-sizing: border-box;
+}
+
+.hand-container {
+    width: 100%;
+    max-width: 900px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    align-items: center;
+    position: relative;
 }
 
+.hand-header {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.25em;
+    margin-bottom: 10px;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+}
+
+.player-hand {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    height: 160px;
+    position: relative;
+    width: 100%;
+}
+
+/* PREMIUM REDESIGNED GAME CARD */
 .game-card {
-    background: #1a1a24;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 130px;
+    height: 180px;
+    background: linear-gradient(135deg, #161622 0%, #0d0d12 100%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 8px;
-    padding: 12px;
+    padding: 10px;
     cursor: pointer;
-    transition: transform 0.2s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+    position: absolute;
+    bottom: 0;
+    transform: translate(var(--card-x, 0px), var(--card-y, 0px)) rotate(var(--card-angle, 0deg));
+    transform-origin: bottom center;
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+    user-select: none;
+    box-sizing: border-box;
+}
+
+.game-card .card-cost {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    font-size: 0.75rem;
+    background: #12121c;
+    color: var(--gold-light);
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    z-index: 5;
+}
+
+.game-card .card-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #fff;
+    line-height: 1.1;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    margin-top: 4px;
+    text-align: center;
+    word-wrap: break-word;
+}
+
+.game-card .card-desc {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    line-height: 1.3;
+    text-align: center;
+    margin-top: 6px;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.game-card .card-actions {
+    display: flex;
+    gap: 4px;
+    margin-top: 6px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 5;
 }
 
 .game-card:hover {
-    transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.3);
+    transform: translate(var(--card-x, 0px), calc(var(--card-y, 0px) - 10px)) rotate(var(--card-angle, 0deg)) scale(1.05);
+    z-index: 9500 !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
 
-.card-title {
-    font-family: 'Rajdhani', sans-serif;
-    font-weight: 700;
-    font-size: 1rem;
-    color: white;
+.game-card:hover .card-actions {
+    opacity: 1;
+    pointer-events: auto;
 }
 
-.card-desc {
-    font-size: 0.75rem;
-    color: #999;
-    margin-top: 4px;
+/* Card design modifiers based on type */
+.game-card.card-attack {
+    border-color: rgba(255, 45, 45, 0.3);
+    background: linear-gradient(135deg, #221212 0%, #0d0606 100%);
+}
+.game-card.card-attack:hover {
+    border-color: var(--red-glow);
+    box-shadow: 0 15px 30px rgba(255, 45, 45, 0.35), 0 0 20px rgba(255, 45, 45, 0.25);
+}
+
+.game-card.card-defence {
+    border-color: rgba(0, 255, 136, 0.3);
+    background: linear-gradient(135deg, #122218 0%, #060d09 100%);
+}
+.game-card.card-defence:hover {
+    border-color: #00FF88;
+    box-shadow: 0 15px 30px rgba(0, 255, 136, 0.35), 0 0 20px rgba(0, 255, 136, 0.25);
+}
+
+.game-card.card-claim-l1 {
+    border-color: rgba(0, 170, 255, 0.3);
+    background: linear-gradient(135deg, #121a2c 0%, #06090f 100%);
+}
+.game-card.card-claim-l1:hover {
+    border-color: var(--blue-glow);
+    box-shadow: 0 15px 30px rgba(0, 170, 255, 0.35), 0 0 20px rgba(0, 170, 255, 0.25);
+}
+
+.game-card.card-claim-l2 {
+    border-color: rgba(255, 204, 0, 0.3);
+    background: linear-gradient(135deg, #241e12 0%, #0f0c07 100%);
+}
+.game-card.card-claim-l2:hover {
+    border-color: var(--yellow);
+    box-shadow: 0 15px 30px rgba(255, 204, 0, 0.35), 0 0 20px rgba(255, 204, 0, 0.25);
+}
+
+.game-card.card-claim-l3 {
+    border-color: rgba(255, 45, 45, 0.3);
+    background: linear-gradient(135deg, #241212 0%, #0f0707 100%);
+}
+.game-card.card-claim-l3:hover {
+    border-color: var(--red-glow);
+    box-shadow: 0 15px 30px rgba(255, 45, 45, 0.35), 0 0 20px rgba(255, 45, 45, 0.25);
+}
+
+.game-card.card-claim-l4 {
+    border-color: rgba(255, 215, 0, 0.4);
+    background: linear-gradient(135deg, #2a1f0a 0%, #120d04 100%);
+}
+.game-card.card-claim-l4:hover {
+    border-color: var(--gold);
+    box-shadow: 0 15px 30px rgba(255, 215, 0, 0.45), 0 0 25px rgba(255, 215, 0, 0.3);
+}
+
+/* Card Selection state */
+.game-card.selected-card {
+    border-color: var(--gold) !important;
+    box-shadow: 0 0 25px var(--gold) !important;
+    transform: rotate(var(--card-angle, 0deg)) translate(var(--card-x, 0px), calc(var(--card-y, 0px) - 30px)) scale(1.08) !important;
+    z-index: 50 !important;
 }
 
 /* Scrollbar styling */
@@ -372,6 +603,227 @@
 ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* Animation Classes */
+.game-card.draw-animation {
+    animation: drawCardEffect 0.6s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+}
+
+@keyframes drawCardEffect {
+    from {
+        transform: translate(0, -50vh) scale(0.2) rotate(-20deg);
+        opacity: 0;
+    }
+    to {
+        transform: rotate(var(--card-angle, 0deg)) translate(var(--card-x, 0px), var(--card-y, 0px)) scale(1);
+        opacity: 1;
+    }
+}
+
+.game-card.play-animation {
+    transform: translate(0, -35vh) scale(1.2) rotate(0deg) !important;
+    opacity: 0;
+    z-index: 1000;
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.4s ease;
+}
+
+.game-card.waste-animation {
+    transform: translate(0, -35vh) scale(0.8) rotate(45deg) !important;
+    opacity: 0;
+    z-index: 1000;
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.4s ease;
+}
+
+/* Turn Transition Overlay */
+.turn-transition-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 4, 10, 0.85);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+    backdrop-filter: blur(8px);
+}
+
+.turn-transition-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.turn-transition-content {
+    background: rgba(15, 15, 25, 0.9);
+    border: 2px solid var(--border2);
+    border-radius: 12px;
+    padding: 30px 60px;
+    text-align: center;
+    transform: scale(0.9);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+}
+
+.turn-transition-overlay.visible .turn-transition-content {
+    transform: scale(1);
+}
+
+.turn-transition-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 2.2rem;
+    font-weight: bold;
+    margin-bottom: 8px;
+    letter-spacing: 0.1em;
+}
+
+.turn-transition-subtitle {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+}
+
+/* Responsive Landscape Mobile queries */
+@media (max-width: 1024px) and (orientation: landscape) {
+    .game-header {
+        height: 50px;
+        padding: 0 10px;
+    }
+    .players-roster {
+        gap: 8px;
+    }
+    .roster-card {
+        padding: 4px 8px;
+        gap: 6px;
+        border-radius: 5px;
+    }
+    .roster-name {
+        font-size: 0.75rem;
+        max-width: 60px;
+    }
+    .roster-stats {
+        font-size: 0.65rem;
+        gap: 6px;
+    }
+    .roster-hand {
+        margin-left: 4px;
+        height: 16px;
+        padding-right: 18px;
+    }
+    .mini-card-back {
+        width: 10px;
+        height: 14px;
+        margin-left: -6px;
+    }
+    .hand-count-badge {
+        width: 12px;
+        height: 12px;
+        font-size: 0.5rem;
+    }
+    .game-table {
+        grid-template-columns: 190px 1fr 190px;
+        height: calc(100vh - 170px);
+        padding: 5px 10px;
+        gap: 10px;
+    }
+    .table-side-panel {
+        padding-top: 5px;
+    }
+    .action-log-wrap {
+        padding: 8px;
+    }
+    .log-title {
+        font-size: 0.55rem;
+        margin-bottom: 4px;
+    }
+    .action-log {
+        font-size: 0.75rem;
+    }
+    .commands-panel {
+        padding: 8px;
+    }
+    .sidebar-title {
+        margin-bottom: 8px;
+        padding-bottom: 4px;
+        font-size: 0.75rem;
+    }
+    .current-turn-indicator {
+        padding: 6px;
+        margin-bottom: 8px;
+    }
+    .current-turn-indicator span {
+        font-size: 0.9rem;
+    }
+    .action-buttons {
+        gap: 6px;
+    }
+    .action-btn {
+        padding: 8px;
+        font-size: 0.65rem;
+        border-radius: 4px;
+    }
+    .table-cards-zone {
+        gap: 15px;
+        margin-top: 5px;
+    }
+    .deck-pile, .active-card-slot, .discard-pile {
+        width: 70px;
+        height: 95px;
+        border-radius: 5px;
+    }
+    .deck-label {
+        font-size: 0.55rem;
+    }
+    .active-card-slot span, .discard-pile span {
+        font-size: 0.5rem;
+    }
+    .game-footer {
+        height: 120px;
+        padding-bottom: 5px;
+    }
+    .hand-header {
+        font-size: 0.55rem;
+        margin-bottom: 4px;
+    }
+    .player-hand {
+        height: 80px;
+    }
+    .game-card {
+        width: 70px;
+        height: 95px;
+        padding: 6px;
+        border-radius: 5px;
+    }
+    .game-card .card-cost {
+        width: 14px;
+        height: 14px;
+        font-size: 0.5rem;
+        top: -4px;
+        right: -4px;
+    }
+    .game-card .card-title {
+        font-size: 0.55rem;
+    }
+    .game-card .card-desc {
+        font-size: 0.45rem;
+        line-height: 1.1;
+        margin-top: 2px;
+    }
+    .game-card .card-actions {
+        margin-top: 3px;
+    }
+    .game-card .card-actions button {
+        font-size: 0.45rem !important;
+        padding: 1px !important;
+    }
+    .game-card:hover {
+        transform: rotate(var(--card-angle, 0deg)) translate(var(--card-x, 0px), calc(var(--card-y, 0px) - 30px)) scale(1.12);
+        z-index: 100 !important;
+    }
+}
+
 
 /* Rotate Overlay */
 .rotate-overlay {
@@ -1939,3 +2391,30 @@ body.spectator-active .segment {
     background: rgba(0, 170, 255, 0.3);
     box-shadow: 0 0 15px rgba(0, 170, 255, 0.25);
 }
+
+/* ==========================================================================
+   CARD CLICK OVERLAY SYSTEM
+   ========================================================================== */
+
+.card-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 4, 10, 0.75);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 9000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.card-backdrop.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+body.card-overlay-open .game-footer {
+    z-index: 9500 !important;
+}
+
+/* Card overlay-active styles removed, behavior now fully handled via CSS :hover */

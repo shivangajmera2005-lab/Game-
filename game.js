@@ -17,8 +17,11 @@ let isMultiplayer = false;
 
 // State variables for events
 let activeEvent = null;
+let lastPlayedCard = null;
+let lastWastedCard = null;
 let lastAction = null;
 let targetingMode = null;
+let overlayedCardIdx = -1;
 let masterDeck = [];
 let eventModifiers = {
     revenueMultiplier: 1,
@@ -121,7 +124,9 @@ function initGame() {
     players.forEach(p => {
         p.hand = [];
         for (let i = 0; i < 5; i++) {
-            p.hand.push(drawRandomCard());
+            const card = drawRandomCard();
+            card.isNew = true;
+            p.hand.push(card);
         }
     });
 
@@ -414,15 +419,32 @@ function updateUI() {
         card.style.borderColor = p.bankrupt ? '#333' : (isOffline ? '#ff2d2d' : (i === currentPlayerIndex ? p.color : ''));
         card.style.opacity = p.bankrupt || isOffline ? '0.5' : '1';
         
+        // Opponent hand card backs markup
+        let handMarkup = '';
+        if (i !== currentPlayerIndex) {
+            const handSize = p.hand ? p.hand.length : 0;
+            handMarkup = `<div class="roster-hand">`;
+            for (let c = 0; c < Math.min(handSize, 5); c++) {
+                handMarkup += `<div class="mini-card-back"></div>`;
+            }
+            if (handSize > 5) {
+                handMarkup += `<div class="hand-count-badge">+${handSize - 5}</div>`;
+            } else {
+                handMarkup += `<div class="hand-count-badge">${handSize}</div>`;
+            }
+            handMarkup += `</div>`;
+        }
+        
         card.innerHTML = `
             <div class="roster-header">
                 <div class="roster-color" style="background:${p.bankrupt || isOffline ? '#555' : p.color}"></div>
-            <div class="roster-name" style="${p.bankrupt ? 'text-decoration:line-through' : ''}" title="${p.name}">${p.name}${isOffline ? ' <span style="font-size:0.7em; color:#ff5555; font-weight:bold; letter-spacing:0.05em;">(OFFLINE)</span>' : ''}</div>
+                <div class="roster-name" style="${p.bankrupt ? 'text-decoration:line-through' : ''}" title="${p.name}">${p.name}${isOffline ? ' <span style="font-size:0.7em; color:#ff5555; font-weight:bold; letter-spacing:0.05em;">(OFFLINE)</span>' : ''}</div>
             </div>
             <div class="roster-stats">
                 <div>Tokens: <span class="stat-val ${p.tokens <= 3 ? 'danger' : ''}">${p.tokens}</span></div>
                 <div>Flags: <span class="stat-val">${p.flags}</span></div>
             </div>
+            ${handMarkup}
         `;
         rosterEl.appendChild(card);
     });
@@ -487,27 +509,75 @@ function renderHand() {
     }
     
     const showActions = isLocalTurn();
+    const totalCards = cp.hand.length;
+    
     cp.hand.forEach((card, idx) => {
         const cEl = document.createElement('div');
-        cEl.className = 'game-card';
-        cEl.style.position = 'relative'; // Ensure absolute positioning works for cost
+        
+        let cardClass = '';
+        if (card.type === 'attack') cardClass = 'card-attack';
+        else if (card.type === 'defence') cardClass = 'card-defence';
+        else if (card.type === 'claim') {
+            cardClass = `card-claim-l${card.level}`;
+        }
+        
+        cEl.className = `game-card ${cardClass}`;
+        
+        // Check selected/targeting state
+        if (targetingMode && targetingMode.cardIdx === idx) {
+            cEl.classList.add('selected-card');
+        }
+        
+        // Check overlay/focus state
+        if (overlayedCardIdx === idx) {
+            cEl.classList.add('overlay-active');
+        }
+        
+        // Draw card animation check
+        if (card.isNew) {
+            cEl.classList.add('draw-animation');
+            // Remove after animation completes
+            setTimeout(() => {
+                card.isNew = false;
+                cEl.classList.remove('draw-animation');
+            }, 600);
+        }
+        
+        // Fan alignment math
+        const maxSweep = 30;
+        const anglePerCard = totalCards > 1 ? maxSweep / (totalCards - 1) : 0;
+        const cardAngle = totalCards > 1 ? -maxSweep / 2 + idx * anglePerCard : 0;
+        
+        const xSpacing = totalCards > 5 ? 50 : 65;
+        const cardX = (idx - (totalCards - 1) / 2) * xSpacing;
+        
+        const distanceFromCenter = idx - (totalCards - 1) / 2;
+        const cardY = Math.abs(distanceFromCenter) * Math.abs(distanceFromCenter) * 3;
+        
+        cEl.style.setProperty('--card-angle', `${cardAngle}deg`);
+        cEl.style.setProperty('--card-x', `${cardX}px`);
+        cEl.style.setProperty('--card-y', `${cardY}px`);
+        cEl.style.zIndex = overlayedCardIdx === idx ? 9500 : idx + 10;
+        
         cEl.innerHTML = `
-            <div class="card-cost" style="position: absolute; top: 8px; right: 8px; font-size: 0.7em; background: rgba(255, 204, 0, 0.15); color: var(--yellow); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(255, 204, 0, 0.3); font-weight: bold;">🪙 ${card.cost || 0}</div>
-            <div class="card-title" style="padding-right: 35px;">${card.name}</div>
+            <div class="card-cost">${card.cost || 0}</div>
+            <div class="card-title">${card.name}</div>
             <div class="card-desc">${card.desc}</div>
             ${showActions ? `
-            <div class="card-actions" style="margin-top: 10px; display: flex; gap: 5px;">
-                <button class="play-btn" style="flex:1; padding:4px; font-size:0.7em; cursor:pointer; background:rgba(0,170,255,0.2); border:1px solid var(--blue-glow); color:var(--text); border-radius:3px;">Play</button>
-                <button class="waste-btn" style="flex:1; padding:4px; font-size:0.7em; cursor:pointer; background:rgba(255,45,45,0.2); border:1px solid var(--red-glow); color:var(--text); border-radius:3px;">Waste</button>
+            <div class="card-actions">
+                <button class="play-btn" style="flex:1; padding:4px; font-size:0.6rem; cursor:pointer; background:rgba(0,170,255,0.2); border:1px solid var(--blue-glow); color:var(--text); border-radius:3px; font-family:'Orbitron', monospace;">Play</button>
+                <button class="waste-btn" style="flex:1; padding:4px; font-size:0.6rem; cursor:pointer; background:rgba(255,45,45,0.2); border:1px solid var(--red-glow); color:var(--text); border-radius:3px; font-family:'Orbitron', monospace;">Waste</button>
             </div>
             ` : ''}
         `;
         
         if (showActions) {
-            cEl.querySelector('.play-btn').addEventListener('click', () => {
+            cEl.querySelector('.play-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
                 playCard(idx);
             });
-            cEl.querySelector('.waste-btn').addEventListener('click', () => {
+            cEl.querySelector('.waste-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
                 wasteCard(idx);
             });
         }
@@ -516,18 +586,34 @@ function renderHand() {
     });
 }
 
-// Turn Logic
 function startTurn() {
+    overlayedCardIdx = -1;
     const cp = players[currentPlayerIndex];
     if (cp.bankrupt) {
         endTurn();
         return;
     }
+    
+    // Turn Transition Overlay
+    const overlay = document.getElementById('turn-transition-overlay');
+    const title = document.getElementById('turn-transition-title');
+    const subtitle = document.getElementById('turn-transition-subtitle');
+    if (overlay && title && subtitle) {
+        title.textContent = cp.name;
+        title.style.color = cp.color;
+        subtitle.textContent = "YOUR TURN BEGINS";
+        overlay.classList.add('visible');
+        setTimeout(() => {
+            overlay.classList.remove('visible');
+        }, 1500);
+    }
+    
     logAction(`<strong>${cp.name}</strong>'s turn begins.`);
     updateUI();
 }
 
 function endTurn() {
+    overlayedCardIdx = -1;
     currentPlayerIndex++;
     if (currentPlayerIndex >= players.length) {
         // End of round
@@ -741,7 +827,9 @@ function processEndRound() {
         // 2. Auto-draw up to 5 cards
         let drawn = 0;
         while (p.hand.length < 5) {
-            p.hand.push(drawRandomCard());
+            const card = drawRandomCard();
+            card.isNew = true;
+            p.hand.push(card);
             drawn++;
         }
         if (drawn > 0) {
@@ -822,6 +910,24 @@ function drawRandomCard() {
 }
 
 // Actions
+const cardBackdrop = document.getElementById('card-backdrop');
+if (cardBackdrop) {
+    cardBackdrop.addEventListener('click', () => {
+        overlayedCardIdx = -1;
+        document.body.classList.remove('card-overlay-open');
+        document.querySelectorAll('.game-card').forEach((el, index) => {
+            el.classList.remove('overlay-active');
+            el.style.zIndex = index + 10;
+        });
+        cardBackdrop.classList.remove('visible');
+        setTimeout(() => {
+            if (overlayedCardIdx === -1) {
+                cardBackdrop.style.display = 'none';
+            }
+        }, 300);
+    });
+}
+
 if(btnBuyFlag) {
     btnBuyFlag.addEventListener('click', () => {
         const cp = players[currentPlayerIndex];
@@ -852,10 +958,65 @@ if(btnEndGame) {
     btnEndGame.addEventListener('click', endGame);
 }
 
-function executeAttackSteal(attacker, defender, segment, id) {
+function promptBuyFlagIfNeeded(player) {
+    return new Promise((resolve) => {
+        if (player.flags > 0) {
+            resolve(true);
+            return;
+        }
+
+        if (player.tokens < 5) {
+            showToast('info', 'No Flags', `${player.name} has no flags left and cannot afford a new flag (must keep at least 3 tokens).`);
+            resolve(false);
+            return;
+        }
+
+        const modal = document.getElementById('buy-flag-modal');
+        const desc = document.getElementById('buy-flag-desc');
+        const confirmBtn = document.getElementById('btn-buy-flag-modal-confirm');
+        const cancelBtn = document.getElementById('btn-buy-flag-modal-cancel');
+
+        desc.innerHTML = `<strong>${player.name}</strong> has no flags left in reserve.<br>Would you like to buy a flag now for <strong>2 tokens</strong>?<br><br>Current budget: <span style="color:var(--gold); font-weight:bold;">${player.tokens} Tokens</span>`;
+        
+        modal.classList.add('visible');
+
+        const onConfirm = () => {
+            player.tokens -= 2;
+            player.flags += 1;
+            logAction(`<strong>${player.name}</strong> purchased a flag for 2 tokens.`);
+            updateUI();
+            cleanup();
+            resolve(true);
+        };
+
+        const onCancel = () => {
+            cleanup();
+            resolve(false);
+        };
+
+        const cleanup = () => {
+            modal.classList.remove('visible');
+            confirmBtn.removeEventListener('click', onConfirm);
+            cancelBtn.removeEventListener('click', onCancel);
+        };
+
+        confirmBtn.addEventListener('click', onConfirm);
+        cancelBtn.addEventListener('click', onCancel);
+    });
+}
+
+async function executeAttackSteal(attacker, defender, segment, id) {
     if (attacker.flags <= 0) {
-        showToast('info', 'No Flags', "You don't have enough flags to hold more territory.");
-        return;
+        const bought = await promptBuyFlagIfNeeded(attacker);
+        if (!bought) {
+            segment.owner = null;
+            segment.power = 0;
+            if (defender) {
+                logAction(`<strong>${attacker.name}</strong> defeated ${defender.name} but had no flags left to occupy ${document.querySelector(`[data-id="${id}"]`).innerText.split('\n')[0].trim()}! The segment becomes neutral.`);
+            }
+            updateUI();
+            return;
+        }
     }
     attacker.flags -= 1;
     segment.owner = attacker.id;
@@ -865,6 +1026,7 @@ function executeAttackSteal(attacker, defender, segment, id) {
     } else {
         logAction(`<strong>${attacker.name}</strong> seized the uncaptured segment ${document.querySelector(`[data-id="${id}"]`).innerText.split('\n')[0].trim()}!`);
     }
+    updateUI();
 }
 
 // -- Toast / Chronicle notification helper ----------------------
@@ -922,6 +1084,7 @@ function openDefenseModal(attackerId, defender, attackPower, attackCardName, att
                 el.innerHTML = `<div class="dmod-card-shield">🛡️</div><div class="dmod-card-name">${card.name}</div><div class="dmod-card-power-badge">${card.power}</div><div class="dmod-card-desc">${card.desc}</div>`;
                 el.addEventListener('click', () => {
                     defender.hand.splice(idx, 1);
+                    lastPlayedCard = card;
                     const attackerName = attacker ? attacker.name : 'attacker';
                     logAction(`<strong>${defender.name}</strong> played a Defense Card (Power ${card.power}) and blocked the ${attackCardName} from ${attackerName}!`);
                     showToast('defense', 'Attack Blocked!', `${defender.name} used a Defense Card (Power ${card.power}).`);
@@ -1118,7 +1281,7 @@ async function executeBiddingWar(challenger, defender, segment, segEl, onComplet
         }
     }
 
-    function doResolve(winner, loser, winBid, winSide, defWin) {
+    async function doResolve(winner, loser, winBid, winSide, defWin) {
         if (resolved) return;
         resolved = true;
         cleanup();
@@ -1128,7 +1291,7 @@ async function executeBiddingWar(challenger, defender, segment, segEl, onComplet
             challenger.tokens -= winBid;
             logAction(`<strong>${challenger.name}</strong> won the bid war with ${winBid} tokens and stole ${segName}!`);
             showToast('win', 'Bid War Won!', `${challenger.name} stole ${segName} for ${winBid} tokens.`);
-            executeAttackSteal(challenger, defender, segment, segEl.getAttribute('data-id'));
+            await executeAttackSteal(challenger, defender, segment, segEl.getAttribute('data-id'));
         } else {
             defender.tokens -= winBid;
             logAction(`<strong>${defender.name}</strong> won the bid war with ${winBid} tokens and defended ${segName}!`);
@@ -1222,6 +1385,13 @@ async function executeBiddingWar(challenger, defender, segment, segEl, onComplet
 }
 
 function playCard(handIdx) {
+    overlayedCardIdx = -1;
+    document.body.classList.remove('card-overlay-open');
+    const backdrop = document.getElementById('card-backdrop');
+    if (backdrop) {
+        backdrop.classList.remove('visible');
+        backdrop.style.display = 'none';
+    }
     const cp = players[currentPlayerIndex];
     const card = cp.hand[handIdx];
     
@@ -1253,22 +1423,39 @@ function cancelTargeting() {
 }
 
 function wasteCard(handIdx) {
+    overlayedCardIdx = -1;
+    document.body.classList.remove('card-overlay-open');
+    const backdrop = document.getElementById('card-backdrop');
+    if (backdrop) {
+        backdrop.classList.remove('visible');
+        backdrop.style.display = 'none';
+    }
     const cp = players[currentPlayerIndex];
     const card = cp.hand[handIdx];
-    cp.hand.splice(handIdx, 1);
     
-    const cost = card.cost || 0;
-    if (cost > 0) {
-        cp.tokens -= cost;
-        logAction(`<strong>${cp.name}</strong> wasted ${card.name} and paid ${cost} tokens.`);
-        if (cp.tokens < 3) {
-            declareBankruptcy(cp);
-            logAction(`<strong>${cp.name}</strong> went bankrupt from wasting a card!`);
-        }
-    } else {
-        logAction(`<strong>${cp.name}</strong> wasted ${card.name}.`);
+    const cardEls = handEl.querySelectorAll('.game-card');
+    const cardEl = cardEls[handIdx];
+    if (cardEl) {
+        cardEl.classList.add('waste-animation');
     }
-    endTurn();
+    
+    setTimeout(() => {
+        cp.hand.splice(handIdx, 1);
+        lastWastedCard = card;
+        
+        const cost = card.cost || 0;
+        if (cost > 0) {
+            cp.tokens -= cost;
+            logAction(`<strong>${cp.name}</strong> wasted ${card.name} and paid ${cost} tokens.`);
+            if (cp.tokens < 3) {
+                declareBankruptcy(cp);
+                logAction(`<strong>${cp.name}</strong> went bankrupt from wasting a card!`);
+            }
+        } else {
+            logAction(`<strong>${cp.name}</strong> wasted ${card.name}.`);
+        }
+        endTurn();
+    }, 400);
 }
 
 async function resolveCopycat(handIdx) {
@@ -1344,11 +1531,19 @@ async function handleTargetingClick(id, segment, segEl) {
     const handIdx = targetingMode.cardIdx;
     
     const finish = () => {
-        cp.hand.splice(handIdx, 1);
-        lastAction = { type: 'attack', targetId: id };
-        cancelTargeting();
-        updateUI();
-        endTurn();
+        const cardEls = handEl.querySelectorAll('.game-card');
+        const cardEl = cardEls[handIdx];
+        if (cardEl) {
+            cardEl.classList.add('play-animation');
+        }
+        setTimeout(() => {
+            cp.hand.splice(handIdx, 1);
+            lastPlayedCard = card;
+            lastAction = { type: 'attack', targetId: id };
+            cancelTargeting();
+            updateUI();
+            endTurn();
+        }, 400);
     };
 
     if (card.name === 'ATTACK') {
@@ -1361,15 +1556,19 @@ async function handleTargetingClick(id, segment, segEl) {
                 // Show a confirm-style choice via a mini toast + prompt handled inline
                 // We'll auto-resolve: defender pays if they can afford it, otherwise loses segment
                 // For pass-and-play, show defense-payment modal inline
-                await openPayOrLoseModal(defender, 3, segEl.innerText.split('\n')[0].trim(), () => {
-                    defender.tokens -= 3;
-                    logAction(`${defender.name} paid 3 tokens to hold their ground against ATTACK!`);
-                    showToast('defense','Segment Held!',`${defender.name} paid 3 tokens to hold the segment.`);
-                }, () => {
-                    executeAttackSteal(cp, defender, segment, id);
+                await new Promise(resolvePay => {
+                    openPayOrLoseModal(defender, 3, segEl.innerText.split('\n')[0].trim(), () => {
+                        defender.tokens -= 3;
+                        logAction(`${defender.name} paid 3 tokens to hold their ground against ATTACK!`);
+                        showToast('defense','Segment Held!',`${defender.name} paid 3 tokens to hold the segment.`);
+                        resolvePay();
+                    }, async () => {
+                        await executeAttackSteal(cp, defender, segment, id);
+                        resolvePay();
+                    });
                 });
             } else {
-                executeAttackSteal(cp, defender, segment, id);
+                await executeAttackSteal(cp, defender, segment, id);
             }
         }
         finish();
@@ -1383,7 +1582,7 @@ async function handleTargetingClick(id, segment, segEl) {
             showToast('info','Invalid Target',`Must target Level ${cpLvl} or Level ${cpLvl+1}.`);
             return;
         }
-        executeAttackSteal(cp, null, segment, id);
+        await executeAttackSteal(cp, null, segment, id);
         finish();
     }
     
@@ -1508,24 +1707,37 @@ async function handleSegmentClick(id, segEl) {
         }
         
         if (cp.tokens - cost >= 3) {
-            if (cp.flags <= 0) { showToast('info','No Flags','You don\'t have enough flags to claim more territory.'); return; }
-            cp.tokens -= cost;
-            cp.flags  -= 1;
-            if (cardToUseIdx !== -1) {
-                cp.hand.splice(cardToUseIdx, 1);
-                segment.power = cardUsed.power;
+            if (cp.flags <= 0) {
+                const bought = await promptBuyFlagIfNeeded(cp);
+                if (!bought) return;
             }
-            segment.owner = cp.id;
-            lastAction = { type: 'claim', segmentId: id };
-            if (segment.level === 2 && eventModifiers.l2FirstFree) {
-                eventModifiers.l2FirstFree = false;
-                logAction(`<strong>${cp.name}</strong> claimed the first Level 2 segment for FREE!`);
+            
+            const cardEls = handEl.querySelectorAll('.game-card');
+            const cardEl = cardToUseIdx !== -1 ? cardEls[cardToUseIdx] : null;
+            if (cardEl) {
+                cardEl.classList.add('play-animation');
             }
-            const segmentName = segEl.innerText.split('\n')[0].trim();
-            logAction(`<strong>${cp.name}</strong> played a Dot Card and conquered ${segmentName} for ${cost} tokens.`);
-            showToast('info','Segment Claimed!',`${cp.name} conquered ${segmentName}.`);
-            updateUI();
-            endTurn();
+            
+            setTimeout(() => {
+                cp.tokens -= cost;
+                cp.flags  -= 1;
+                if (cardToUseIdx !== -1) {
+                    cp.hand.splice(cardToUseIdx, 1);
+                    segment.power = cardUsed.power;
+                    lastPlayedCard = cardUsed;
+                }
+                segment.owner = cp.id;
+                lastAction = { type: 'claim', segmentId: id };
+                if (segment.level === 2 && eventModifiers.l2FirstFree) {
+                    eventModifiers.l2FirstFree = false;
+                    logAction(`<strong>${cp.name}</strong> claimed the first Level 2 segment for FREE!`);
+                }
+                const segmentName = segEl.innerText.split('\n')[0].trim();
+                logAction(`<strong>${cp.name}</strong> played a Dot Card and conquered ${segmentName} for ${cost} tokens.`);
+                showToast('info','Segment Claimed!',`${cp.name} conquered ${segmentName}.`);
+                updateUI();
+                endTurn();
+            }, cardEl ? 400 : 0);
         } else {
             showToast('info','Not Enough Tokens',`Cost is ${cost} tokens and you must keep at least 3.`);
         }
@@ -1562,7 +1774,10 @@ async function handleSegmentClick(id, segEl) {
                 cardUsed     = validCards[0].card;
 
                 const prevOwner = players.find(p => p.id === segment.owner);
-                if (cp.flags <= 0) { showToast('info','No Flags','You don\'t have enough flags to claim territory through a bid.'); return; }
+                if (cp.flags <= 0) {
+                    const bought = await promptBuyFlagIfNeeded(cp);
+                    if (!bought) return;
+                }
 
                 showToast('bid','Bidding War!',`${cp.name} challenges ${prevOwner.name} for ${segEl.innerText.split('\n')[0].trim()}!`);
 
@@ -1584,9 +1799,11 @@ async function handleSegmentClick(id, segEl) {
                     cp.flags  -= 1;
                     cp.hand.splice(cardToUseIdx, 1);
                     segment.power = cardUsed.power;
+                    lastPlayedCard = cardUsed;
                     lastAction = { type: 'claim', segmentId: id };
                 } else {
                     cp.hand.splice(cardToUseIdx, 1);
+                    lastWastedCard = cardUsed;
                     logAction(`<span style="color:${cp.color}">${cp.name}</span> lost the bidding war and their card.`);
                 }
                 updateUI();
@@ -1695,9 +1912,13 @@ function resetGame() {
         p.bankrupt = false;
         p.hand = [];
         for (let i = 0; i < 5; i++) {
-            p.hand.push(drawRandomCard());
+            const card = drawRandomCard();
+            card.isNew = true;
+            p.hand.push(card);
         }
     });
+    lastPlayedCard = null;
+    lastWastedCard = null;
 
     // 2. Reset board state
     Object.keys(board).forEach(id => {
