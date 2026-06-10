@@ -7,50 +7,52 @@
     'use strict';
 
     // ── Config ──────────────────────────────────────────────────────
-    const SERVER_URL = window.SOCKET_SERVER_URL || 'http://localhost:5931';
+    const SERVER_URL =
+        window.SOCKET_SERVER_URL ||
+        'https://game-production-4ba0.up.railway.app';
 
     // ── State ────────────────────────────────────────────────────────
     let currentRoomCode = null;
-    let isHost          = false;
-    let myPlayerName    = '';
-    let myReadyStatus   = false;
+    let isHost = false;
+    let myPlayerName = '';
+    let myReadyStatus = false;
 
     // ── Socket connection ────────────────────────────────────────────
     const socket = io(SERVER_URL, {
-        transports:        ['websocket', 'polling'],
+        transports: ['websocket', 'polling'],
         reconnectionDelay: 1000,
         reconnectionAttempts: 10,
     });
 
     // ── DOM refs ─────────────────────────────────────────────────────
-    const connChip       = document.getElementById('conn-chip');
-    const connLabel      = document.getElementById('conn-label');
+    const connChip = document.getElementById('conn-chip');
+    const connLabel = document.getElementById('conn-label');
 
-    const stateEntry     = document.getElementById('state-entry');
-    const stateLobby     = document.getElementById('state-lobby');
+    const stateEntry = document.getElementById('state-entry');
+    const stateLobby = document.getElementById('state-lobby');
 
-    const createNameEl   = document.getElementById('create-name');
-    const joinCodeEl     = document.getElementById('join-code');
-    const joinNameEl     = document.getElementById('join-name');
+    const createNameEl = document.getElementById('create-name');
+    const joinCodeEl = document.getElementById('join-code');
+    const joinNameEl = document.getElementById('join-name');
 
-    const btnCreate      = document.getElementById('btn-create');
-    const btnJoin        = document.getElementById('btn-join');
+    const btnCreate = document.getElementById('btn-create');
+    const btnJoin = document.getElementById('btn-join');
 
-    const createErrEl    = document.getElementById('create-error');
-    const joinErrEl      = document.getElementById('join-error');
+    const createErrEl = document.getElementById('create-error');
+    const joinErrEl = document.getElementById('join-error');
 
-    const codeDisplayEl  = document.getElementById('room-code-display');
-    const countBadgeEl   = document.getElementById('player-count-badge');
-    const playersListEl  = document.getElementById('players-list-lobby');
+    const codeDisplayEl = document.getElementById('room-code-display');
+    const countBadgeEl = document.getElementById('player-count-badge');
+    const playersListEl = document.getElementById('players-list-lobby');
 
-    const hostControls   = document.getElementById('host-controls');
-    const guestWaiting   = document.getElementById('guest-waiting');
-    const btnStartGame   = document.getElementById('btn-start-game');
-    const startNote      = document.getElementById('start-note');
+    const hostControls = document.getElementById('host-controls');
+    const guestWaiting = document.getElementById('guest-waiting');
+    const btnStartGame = document.getElementById('btn-start-game');
+    const startNote = document.getElementById('start-note');
 
-    const btnCopyCode    = document.getElementById('btn-copy-code');
-    const btnLeaveRoom   = document.getElementById('btn-leave-room');
-    
+    const btnCopyCode = document.getElementById('btn-copy-code');
+    const btnLeaveRoom = document.getElementById('btn-leave-room');
+
     const btnReadyToggle = document.getElementById('btn-ready-toggle');
     const toastContainer = document.getElementById('lobby-toast-container');
 
@@ -74,8 +76,8 @@
 
     function showState(stateName) {
         [stateEntry, stateLobby].forEach(s => s.classList.remove('active'));
-        if (stateName === 'entry')  stateEntry.classList.add('active');
-        if (stateName === 'lobby')  stateLobby.classList.add('active');
+        if (stateName === 'entry') stateEntry.classList.add('active');
+        if (stateName === 'lobby') stateLobby.classList.add('active');
     }
 
     // ── Premium Floating Toast Alert ──────────────────────────────────
@@ -83,15 +85,15 @@
         if (!toastContainer) return;
         const toast = document.createElement('div');
         toast.className = `lobby-toast ${type}`;
-        
+
         let icon = 'ℹ️';
         if (type === 'success') icon = '✔';
-        if (type === 'error')   icon = '❌';
+        if (type === 'error') icon = '❌';
         if (type === 'warning') icon = '👑';
-        
+
         toast.innerHTML = `<span>${icon}</span> <span>${escapeHtml(message)}</span>`;
         toastContainer.appendChild(toast);
-        
+
         setTimeout(() => {
             toast.remove();
         }, 3900);
@@ -129,12 +131,12 @@
         players.forEach(p => {
             const slot = document.createElement('div');
             slot.className = 'player-slot' + (p.isHost ? ' is-host' : '');
-            
+
             // Visual indicator for ready status beside name
-            const readyIndicator = p.ready 
+            const readyIndicator = p.ready
                 ? `<span style="color:var(--green-glow); margin-right: 8px; font-weight: bold; text-shadow: 0 0 10px var(--green-glow)">✔</span>`
                 : `<span style="color:var(--red-glow); margin-right: 8px; text-shadow: 0 0 10px var(--red-glow)">●</span>`;
-            
+
             const badgeClass = p.isHost ? 'badge-host' : (p.ready ? 'badge-ready' : 'badge-not-ready');
             const badgeText = p.isHost ? '👑 HOST' : (p.ready ? 'READY' : 'NOT READY');
 
@@ -168,9 +170,9 @@
             const minPlayersMet = players.length >= 3;
             const allReady = players.every(p => p.ready);
             const canStart = minPlayersMet && allReady;
-            
+
             btnStartGame.disabled = !canStart;
-            
+
             if (!minPlayersMet) {
                 startNote.textContent = `Need at least 3 players to start (${players.length}/3)`;
             } else if (!allReady) {
@@ -204,8 +206,8 @@
         renderRoomCode(roomCode);
         renderPlayers(players);
 
-        hostControls.style.display = amIHost ? 'flex'  : 'none';
-        guestWaiting.style.display = amIHost ? 'none'  : 'flex';
+        hostControls.style.display = amIHost ? 'flex' : 'none';
+        guestWaiting.style.display = amIHost ? 'none' : 'flex';
 
         showState('lobby');
     }
@@ -225,16 +227,16 @@
         for (let i = 0; i < 40; i++) {
             const p = document.createElement('div');
             p.className = 'particle';
-            const size  = Math.random() * 3 + 1;
+            const size = Math.random() * 3 + 1;
             const color = colors[Math.floor(Math.random() * colors.length)];
             Object.assign(p.style, {
-                width:             `${size}px`,
-                height:            `${size}px`,
-                left:              `${Math.random() * 100}%`,
-                background:        color,
-                boxShadow:         `0 0 ${size * 4}px ${color}`,
+                width: `${size}px`,
+                height: `${size}px`,
+                left: `${Math.random() * 100}%`,
+                background: color,
+                boxShadow: `0 0 ${size * 4}px ${color}`,
                 animationDuration: `${Math.random() * 15 + 10}s`,
-                animationDelay:    `${Math.random() * 10}s`,
+                animationDelay: `${Math.random() * 10}s`,
             });
             container.appendChild(p);
         }
@@ -245,13 +247,13 @@
     // ═══════════════════════════════════════════════════════════════
 
     socket.on('connect', () => {
-        connChip.className  = 'connection-chip connected';
+        connChip.className = 'connection-chip connected';
         connLabel.textContent = 'CONNECTED';
         console.log('[lobby] connected to server');
     });
 
     socket.on('disconnect', () => {
-        connChip.className  = 'connection-chip disconnected';
+        connChip.className = 'connection-chip disconnected';
         connLabel.textContent = 'DISCONNECTED';
         console.log('[lobby] disconnected from server');
 
@@ -262,7 +264,7 @@
     });
 
     socket.on('connect_error', () => {
-        connChip.className  = 'connection-chip disconnected';
+        connChip.className = 'connection-chip disconnected';
         connLabel.textContent = 'OFFLINE';
     });
 
@@ -278,7 +280,7 @@
     socket.on('room-joined', ({ roomCode, players, isHost: amIHost, isSpectator, gameState }) => {
         setLoading(btnJoin, false);
         clearError(joinErrEl);
-        
+
         if (isSpectator) {
             showToast(`Entering Spectator Mode...`, 'success');
             localStorage.setItem('empireClimbRoomCode', roomCode);
@@ -307,7 +309,7 @@
             myReadyStatus = me.ready;
             updateReadyButtonUI(myReadyStatus);
         }
-        
+
         renderPlayers(players);
     });
 
@@ -322,7 +324,7 @@
 
     socket.on('hostChanged', ({ hostName }) => {
         showToast(`${hostName} is now the host!`, 'warning');
-        
+
         // Host reassignment check
         if (myPlayerName === hostName) {
             isHost = true;
@@ -334,7 +336,7 @@
     // ── Game is starting ──────────────────────────────────────────────
     socket.on('gameStarting', ({ players }) => {
         showToast('Entering the battlefield! Prepare to rise...', 'success');
-        
+
         // Write player data in the exact format game.js expects
         localStorage.setItem('empireClimbPlayers', JSON.stringify(players));
 
@@ -347,7 +349,7 @@
     // ── Server-side error ─────────────────────────────────────────────
     socket.on('error', ({ message }) => {
         setLoading(btnCreate, false);
-        setLoading(btnJoin,   false);
+        setLoading(btnJoin, false);
 
         // Show the error in whichever panel triggered it
         if (currentRoomCode === null) {
@@ -368,7 +370,7 @@
         if (!currentRoomCode) return;
         myReadyStatus = !myReadyStatus;
         updateReadyButtonUI(myReadyStatus);
-        
+
         if (myReadyStatus) {
             socket.emit('playerReady', { roomCode: currentRoomCode });
         } else {
@@ -423,8 +425,8 @@
 
     // ── Allow Enter key to submit ─────────────────────────────────────
     createNameEl.addEventListener('keydown', e => { if (e.key === 'Enter') btnCreate.click(); });
-    joinNameEl.addEventListener('keydown',   e => { if (e.key === 'Enter') btnJoin.click();   });
-    joinCodeEl.addEventListener('keydown',   e => { if (e.key === 'Enter') btnJoin.click();   });
+    joinNameEl.addEventListener('keydown', e => { if (e.key === 'Enter') btnJoin.click(); });
+    joinCodeEl.addEventListener('keydown', e => { if (e.key === 'Enter') btnJoin.click(); });
 
     // Auto-uppercase room code input as the user types
     joinCodeEl.addEventListener('input', () => {
@@ -460,8 +462,8 @@
         currentRoomCode = null;
         isHost = false;
         myReadyStatus = false;
-        createNameEl.value = myPlayerName; 
-        joinNameEl.value   = myPlayerName;
+        createNameEl.value = myPlayerName;
+        joinNameEl.value = myPlayerName;
         clearError(createErrEl);
         clearError(joinErrEl);
         showState('entry');
