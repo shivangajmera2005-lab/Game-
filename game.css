@@ -2615,3 +2615,97 @@ body.card-overlay-open .game-footer {
 [data-theme="light"] .turn-transition-content {
     background: rgba(237, 231, 219, 0.97);
 }
+
+/* ===================================================
+   FORCE DARK THEME ON MOBILE (≤768px) — Game Page
+=================================================== */
+@media (max-width: 768px) {
+
+  [data-theme="light"] .game-container {
+    background: radial-gradient(circle at 50% 50%, #151525 0%, #06060c 100%);
+  }
+
+  [data-theme="light"] .game-header {
+    background: rgba(10, 10, 18, 0.7);
+    border-bottom-color: rgba(255, 215, 0, 0.08);
+  }
+
+  [data-theme="light"] .roster-card {
+    background: rgba(20, 20, 30, 0.6);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  [data-theme="light"] .roster-card.active-turn {
+    background: rgba(255, 215, 0, 0.04);
+  }
+
+  [data-theme="light"] .roster-name { color: white; }
+
+  [data-theme="light"] .action-log-wrap,
+  [data-theme="light"] .commands-panel {
+    background: rgba(10, 10, 18, 0.5);
+    border-color: rgba(255, 215, 0, 0.15);
+  }
+
+  [data-theme="light"] .log-entry       { color: #ccc; }
+  [data-theme="light"] .log-entry strong { color: white; }
+
+  [data-theme="light"] .action-btn {
+    background: rgba(20, 20, 30, 0.6);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: white;
+  }
+
+  [data-theme="light"] .action-btn:hover:not(:disabled) {
+    border-color: white;
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 10px rgba(255,255,255,0.1);
+    color: white;
+  }
+
+  [data-theme="light"] .game-footer {
+    background: linear-gradient(0deg, rgba(10,10,18,0.95) 0%, rgba(10,10,18,0.5) 100%);
+    border-top-color: rgba(255, 215, 0, 0.08);
+  }
+
+  [data-theme="light"] .game-card {
+    background: linear-gradient(145deg, #2A2240 0%, #1A1530 100%);
+    border: 2px solid rgba(255, 215, 0, 0.45);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.22);
+  }
+
+  [data-theme="light"] .game-card .card-title  { color: #FFFFFF; }
+  [data-theme="light"] .game-card .card-desc   { color: rgba(255,255,255,0.72); }
+
+  [data-theme="light"] .game-card .card-cost {
+    background: rgba(0,0,0,0.55);
+    color: #FFD700;
+    border-color: rgba(255,215,0,0.7);
+  }
+
+  [data-theme="light"] .game-card.card-attack {
+    background: linear-gradient(145deg, #7A1010 0%, #550A0A 100%);
+    border-color: rgba(255, 68, 68, 0.75);
+  }
+
+  [data-theme="light"] .game-card.card-defence {
+    background: linear-gradient(145deg, #0B5E28 0%, #063D18 100%);
+    border-color: rgba(0, 255, 136, 0.65);
+  }
+
+  [data-theme="light"] .current-turn-indicator span { color: white; }
+
+  [data-theme="light"] .turn-transition-overlay {
+    background: rgba(4, 4, 10, 0.85);
+  }
+
+  [data-theme="light"] .turn-transition-content {
+    background: rgba(15, 15, 25, 0.9);
+  }
+
+  [data-theme="light"] .theme-toggle-btn {
+    background: rgba(255,215,0,0.08);
+    border-color: rgba(255,215,0,0.4);
+    color: #FFD700;
+  }
+}

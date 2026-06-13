@@ -340,6 +340,12 @@
         // Write player data in the exact format game.js expects
         localStorage.setItem('empireClimbPlayers', JSON.stringify(players));
 
+        // CRITICAL: save room context so game.js knows this is a shared multiplayer game
+        localStorage.setItem('empireClimbRoomCode', currentRoomCode);
+        localStorage.setItem('empireClimbIsMultiplayer', 'true');
+        // Tell game.js whether this client is the host (host deals cards & pushes first state)
+        localStorage.setItem('empireClimbIsHost', isHost ? 'true' : 'false');
+
         // Small delay so all animations can settle
         setTimeout(() => {
             window.location.href = 'game.html';

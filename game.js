@@ -14,6 +14,7 @@ let socket = null;
 let isSpectator = false;
 let roomCode = null;
 let isMultiplayer = false;
+let isHost = false; // true only for the player who created the room
 
 // State variables for events
 let activeEvent = null;
@@ -73,6 +74,7 @@ function initGame() {
     roomCode = urlParams.get('room') || localStorage.getItem('empireClimbRoomCode');
     isSpectator = urlParams.get('spectator') === 'true';
     isMultiplayer = localStorage.getItem('empireClimbIsMultiplayer') === 'true' || isSpectator;
+    isHost = localStorage.getItem('empireClimbIsHost') === 'true';
 
     // Init board
     document.querySelectorAll('.segment').forEach(seg => {
@@ -119,8 +121,28 @@ function initGame() {
         return;
     }
     players = JSON.parse(data);
-    
-    // Add hand to players (5 starting cards each)
+
+    if (isMultiplayer && !isHost) {
+        // ── GUEST MULTIPLAYER PATH ──────────────────────────────────────
+        // Guests must NOT deal their own cards. The host is the single
+        // source of truth. Show a waiting screen until the host's first
+        // game-state-update arrives via the socket.
+        rosterEl.innerHTML = '<div style="color:#aaa; font-family:\'Orbitron\', monospace; font-size:0.9rem; text-align:center; padding: 20px;">SYNCING GAME STATE...</div>';
+        currentPlayerNameEl.textContent = '...';
+
+        const chatWidget = document.getElementById('chat-widget');
+        if (chatWidget) {
+            chatWidget.style.display = 'block';
+            initChatHandlers();
+        }
+
+        // Connect — we will applyGameState once the host broadcasts
+        connectSocketSync();
+        return;
+    }
+
+    // ── HOST (or local pass-and-play) PATH ────────────────────────────
+    // Host deals cards for all players and is the authoritative game state.
     players.forEach(p => {
         p.hand = [];
         for (let i = 0; i < 5; i++) {
@@ -142,7 +164,7 @@ function initGame() {
         }
     }
 
-    // Connect to sync server
+    // Connect to sync server (host will push authoritative state on connect)
     connectSocketSync();
 }
 
@@ -198,6 +220,9 @@ function applyGameState(state) {
 
 function syncGameState() {
     if (isSpectator) return;
+    // In multiplayer, only push state when it's your turn (or you're the host doing initial sync)
+    // This prevents each client from overwriting the shared state with their stale local copy.
+    if (isMultiplayer && !isLocalTurn()) return;
     if (socket && socket.connected && roomCode) {
         const state = serializeGameState();
         socket.emit('game-state-update', { roomCode, gameState: state });
@@ -225,9 +250,13 @@ function connectSocketSync() {
             // Join as active player
             const myName = localStorage.getItem('empireClimbMyName') || 'Host';
             socket.emit('join-room', { roomCode, playerName: myName });
-            
-            // Broadcast initial state immediately
-            syncGameState();
+
+            // Only the HOST pushes the authoritative initial state.
+            // Guests wait silently for the host's broadcast.
+            if (isHost) {
+                // Give a tiny delay so all guests have a moment to connect first
+                setTimeout(() => syncGameState(), 500);
+            }
         } else {
             // Local pass-and-play room creation
             const initialState = serializeGameState();
@@ -287,9 +316,21 @@ function connectSocketSync() {
     });
 
     socket.on('game-state-update', (state) => {
-        if (isSpectator || !isLocalTurn()) {
+        // Accept state updates when it's not our turn, OR when we're a guest
+        // who hasn't loaded the real game yet (players array will be empty).
+        const guestWaitingForInit = isMultiplayer && !isHost && players.length === 0;
+        if (isSpectator || !isLocalTurn() || guestWaitingForInit) {
             console.log('[game] received state sync');
             applyGameState(state);
+
+            // If we were waiting for initial state, now boot up the chat panel
+            if (guestWaitingForInit && isMultiplayer) {
+                const chatWidget = document.getElementById('chat-widget');
+                if (chatWidget && chatWidget.style.display !== 'block') {
+                    chatWidget.style.display = 'block';
+                    initChatHandlers();
+                }
+            }
         }
     });
 
