@@ -12,6 +12,7 @@
         href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="index.css">
+    <script src="theme.js"></script>
 </head>
 
 <body>
@@ -40,6 +41,10 @@
         <a href="#rules" onclick="closeMobileMenu()">Rules</a>
         <a href="#multiplayer" onclick="closeMobileMenu()">Players</a>
         <a href="#faq" onclick="closeMobileMenu()">FAQ</a>
+        <button class="theme-toggle-btn" id="mobile-theme-toggle" aria-label="Toggle theme" title="Toggle theme" style="margin:16px auto 0;display:flex;">
+            <span class="theme-icon">☀️</span>
+            <span class="theme-label">Light</span>
+        </button>
     </div>
 
     <!-- ======================== NAVBAR ======================== -->
@@ -54,9 +59,15 @@
             <li><a href="#multiplayer">Players</a></li>
             <li><a href="#faq">FAQ</a></li>
         </ul>
-        <button class="hamburger" id="hamburger">
-            <span></span><span></span><span></span>
-        </button>
+        <div class="nav-right">
+            <button class="theme-toggle-btn" id="theme-toggle" aria-label="Switch to light mode" title="Switch to light mode">
+                <span class="theme-icon">☀️</span>
+                <span class="theme-label">Light</span>
+            </button>
+            <button class="hamburger" id="hamburger">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
     </nav>
 
     <!-- ======================== HERO ======================== -->

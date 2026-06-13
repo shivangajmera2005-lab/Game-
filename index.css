@@ -16,7 +16,206 @@
   --border2: rgba(255, 215, 0, 0.3);
   --text: #E8E8F0;
   --text-dim: rgba(232, 232, 240, 0.55);
+
+  /* Theme toggle button */
+  --toggle-bg: rgba(255, 215, 0, 0.08);
+  --toggle-border: rgba(255, 215, 0, 0.35);
+  --toggle-text: #E5A91E;
+  --toggle-shadow: rgba(255, 215, 0, 0.2);
 }
+
+/* ===== LIGHT MODE OVERRIDES ===== */
+[data-theme="light"] {
+  --bg: #F5F0E8;
+  --bg2: #EDE7DB;
+  --bg3: #E5DDD0;
+  --glass: rgba(0, 0, 0, 0.04);
+  --glass2: rgba(0, 0, 0, 0.07);
+  --border: rgba(165, 117, 12, 0.25);
+  --border2: rgba(165, 117, 12, 0.45);
+  --text: #1A1408;
+  --text-dim: rgba(26, 20, 8, 0.55);
+
+  --toggle-bg: rgba(165, 117, 12, 0.1);
+  --toggle-border: rgba(165, 117, 12, 0.45);
+  --toggle-text: #7a5500;
+  --toggle-shadow: rgba(165, 117, 12, 0.25);
+}
+
+[data-theme="light"] body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+[data-theme="light"] nav {
+  background: rgba(245, 240, 232, 0.88);
+  border-bottom-color: rgba(165, 117, 12, 0.2);
+}
+
+[data-theme="light"] nav.scrolled {
+  background: rgba(237, 231, 219, 0.96);
+}
+
+[data-theme="light"] .hero-bg {
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 60%, rgba(229, 169, 30, 0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 20% 80%, rgba(0, 170, 255, 0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 80% 20%, rgba(255, 45, 45, 0.04) 0%, transparent 60%),
+    var(--bg);
+}
+
+[data-theme="light"] #about {
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg2) 50%, var(--bg) 100%);
+}
+
+[data-theme="light"] #board {
+  background: var(--bg2);
+}
+
+[data-theme="light"] .feature-card,
+[data-theme="light"] .rule-card,
+[data-theme="light"] .strategy-card,
+[data-theme="light"] .board-info-card,
+[data-theme="light"] .rarity-card,
+[data-theme="light"] .flag-ui {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(165, 117, 12, 0.2);
+}
+
+[data-theme="light"] .feature-card:hover,
+[data-theme="light"] .rule-card:hover,
+[data-theme="light"] .strategy-card:hover {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(165, 117, 12, 0.4);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 0 30px rgba(229, 169, 30, 0.08);
+}
+
+[data-theme="light"] .mobile-menu {
+  background: rgba(245, 240, 232, 0.98);
+  border-color: rgba(165, 117, 12, 0.2);
+}
+
+[data-theme="light"] .mobile-menu a {
+  color: #4A3800;
+  border-bottom-color: rgba(165, 117, 12, 0.15);
+}
+
+[data-theme="light"] #loader {
+  background: var(--bg);
+}
+
+[data-theme="light"] .footer-wrap {
+  background: var(--bg2);
+  border-top-color: rgba(165, 117, 12, 0.15);
+}
+
+[data-theme="light"] .hero-grid {
+  background-image:
+    linear-gradient(rgba(165, 117, 12, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(165, 117, 12, 0.04) 1px, transparent 1px);
+}
+
+[data-theme="light"] .faq-item {
+  background: rgba(0,0,0,0.03);
+  border-color: rgba(165,117,12,0.2);
+}
+
+[data-theme="light"] .faq-item:hover {
+  border-color: rgba(165,117,12,0.4);
+}
+
+[data-theme="light"] .bankruptcy-card {
+  background: rgba(255,45,45,0.04);
+  border-color: rgba(255,45,45,0.25);
+}
+
+[data-theme="light"] .footer-links a {
+  color: rgba(26,20,8,0.55);
+}
+[data-theme="light"] .footer-links a:hover {
+  color: var(--gold-dark);
+}
+
+/* Keep showcase card text white in light mode (cards have hardcoded dark backgrounds) */
+[data-theme="light"] .card-front .card-count,
+[data-theme="light"] .card-back .card-desc,
+[data-theme="light"] .card-front .card-desc {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* Dot cards keep their vibrant colors */
+[data-theme="light"] .dot-card {
+  background: rgba(0,0,0,0.06);
+  border-color: rgba(165,117,12,0.2);
+}
+
+/* ===== THEME TOGGLE BUTTON ===== */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--toggle-bg);
+  border: 1px solid var(--toggle-border);
+  border-radius: 50px;
+  color: var(--toggle-text);
+  font-family: 'Orbitron', monospace;
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.theme-toggle-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--toggle-shadow);
+  opacity: 0;
+  transition: opacity 0.3s;
+  border-radius: inherit;
+}
+
+.theme-toggle-btn:hover::before {
+  opacity: 1;
+}
+
+.theme-toggle-btn:hover {
+  box-shadow: 0 0 16px var(--toggle-shadow);
+  transform: translateY(-1px);
+}
+
+.theme-toggle-btn:active {
+  transform: scale(0.96);
+}
+
+.theme-icon {
+  font-size: 0.9rem;
+  line-height: 1;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.theme-toggle-btn:hover .theme-icon {
+  transform: rotate(20deg) scale(1.2);
+}
+
+.theme-label {
+  font-size: 0.55rem;
+}
+
+/* Nav right side container to hold hamburger + theme toggle */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 
 *,
 *::before,

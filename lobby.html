@@ -7,6 +7,7 @@
     <title>Empire Climb — Multiplayer Lobby</title>
     <link rel="icon" type="image/png" href="Pictures/ICON_IMAGE.PNG">
     <link rel="stylesheet" href="lobby.css">
+    <script src="theme.js"></script>
 
     <!-- ═══════════════════════════════════════════════════════════
          SERVER CONFIGURATION
@@ -28,10 +29,16 @@
     <!-- Particles background -->
     <div id="particles"></div>
 
-    <!-- Connection status chip -->
-    <div class="connection-chip disconnected" id="conn-chip">
-        <div class="connection-dot"></div>
-        <span id="conn-label">CONNECTING</span>
+    <!-- Top-right: Connection chip + Theme toggle grouped -->
+    <div class="top-right-controls">
+        <button class="theme-toggle-btn" id="theme-toggle" aria-label="Switch to light mode" title="Switch to light mode">
+            <span class="theme-icon">☀️</span>
+            <span class="theme-label">Light</span>
+        </button>
+        <div class="connection-chip disconnected" id="conn-chip">
+            <div class="connection-dot"></div>
+            <span id="conn-label">CONNECTING</span>
+        </div>
     </div>
 
     <!-- ═══════════════ LOBBY PAGE ═══════════════ -->

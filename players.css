@@ -316,3 +316,74 @@
         max-width: 500px;
     }
 }
+
+/* ===== LIGHT MODE OVERRIDES — Players Page ===== */
+[data-theme="light"] .players-box {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(165, 117, 12, 0.2);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .players-box:hover {
+    border-color: rgba(165, 117, 12, 0.4);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="light"] .multiplayer-box {
+    border-color: rgba(0, 100, 200, 0.25);
+}
+
+[data-theme="light"] .multiplayer-box:hover {
+    border-color: rgba(0, 100, 200, 0.45);
+}
+
+[data-theme="light"] .player-input {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(165, 117, 12, 0.25);
+    color: #1A1408;
+}
+
+[data-theme="light"] .player-input:focus {
+    border-color: rgba(165, 117, 12, 0.6);
+}
+
+[data-theme="light"] .player-delete {
+    color: rgba(26, 20, 8, 0.3);
+}
+
+/* ── Online Multiplayer card fixes ── */
+[data-theme="light"] .multiplayer-info-card {
+    background: rgba(0, 100, 200, 0.06);
+    border-color: rgba(0, 100, 200, 0.2);
+}
+
+/* "Conquer Globally" title */
+[data-theme="light"] .mp-info-title {
+    color: #0D1F3C;
+}
+
+/* Description paragraph */
+[data-theme="light"] .mp-info-desc {
+    color: #2A3A50;
+}
+
+/* Feature list items */
+[data-theme="light"] .mp-features-list li {
+    color: #1A2A3A;
+}
+
+/* Feature list emoji/icon spans */
+[data-theme="light"] .mp-features-list li span {
+    color: #0077CC;
+}
+
+/* "ONLINE MULTIPLAYER" header label in the players-header */
+[data-theme="light"] .players-header-left span[style*="color:#00AAFF"],
+[data-theme="light"] .players-header-left span[style*="color: #00AAFF"] {
+    color: #005EA3 !important;
+}
+
+/* "INTERNET CONNECTION REQUIRED" footer note */
+[data-theme="light"] .players-footer {
+    color: rgba(0, 80, 160, 0.75) !important;
+}

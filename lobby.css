@@ -623,11 +623,89 @@ body::before {
     background: rgba(255,45,45,0.06);
 }
 
-/* ── Connection status chip ───────────────────────────────────── */
-.connection-chip {
+/* ── Top-right controls container (theme toggle + connection chip) ─── */
+.top-right-controls {
     position: fixed;
     top: 16px;
     right: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 200;
+}
+
+/* ── Theme Toggle Button ──────────────────────────────────────── */
+.theme-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: rgba(255, 215, 0, 0.08);
+    border: 1px solid rgba(255, 215, 0, 0.4);
+    border-radius: 50px;
+    color: #FFD700;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    text-transform: uppercase;
+    backdrop-filter: blur(8px);
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.theme-toggle-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 215, 0, 0.12);
+    opacity: 0;
+    transition: opacity 0.3s;
+    border-radius: inherit;
+}
+
+.theme-toggle-btn:hover::before { opacity: 1; }
+
+.theme-toggle-btn:hover {
+    border-color: rgba(255, 215, 0, 0.7);
+    box-shadow: 0 0 16px rgba(255, 215, 0, 0.25);
+    transform: translateY(-1px);
+}
+
+.theme-toggle-btn:active { transform: scale(0.96); }
+
+.theme-icon {
+    font-size: 0.9rem;
+    line-height: 1;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.theme-toggle-btn:hover .theme-icon {
+    transform: rotate(20deg) scale(1.2);
+}
+
+.theme-label { font-size: 0.55rem; }
+
+/* Light mode overrides for the toggle button */
+[data-theme="light"] .theme-toggle-btn {
+    background: rgba(165, 117, 12, 0.08);
+    border-color: rgba(165, 117, 12, 0.45);
+    color: #7a5500;
+}
+[data-theme="light"] .theme-toggle-btn::before {
+    background: rgba(165, 117, 12, 0.1);
+}
+[data-theme="light"] .theme-toggle-btn:hover {
+    border-color: rgba(165, 117, 12, 0.7);
+    box-shadow: 0 0 16px rgba(165, 117, 12, 0.2);
+}
+
+/* ── Connection status chip ───────────────────────────────────── */
+.connection-chip {
     display: flex;
     align-items: center;
     gap: 7px;
@@ -639,7 +717,6 @@ body::before {
     font-size: 0.55rem;
     letter-spacing: 0.12em;
     color: var(--text-dim);
-    z-index: 100;
     backdrop-filter: blur(8px);
     transition: all 0.3s;
 }
@@ -756,4 +833,110 @@ body::before {
 @keyframes toastOut {
     from { opacity: 1; transform: translateY(0) scale(1); }
     to   { opacity: 0; transform: translateY(-24px) scale(0.9); }
+}
+
+/* ===== LIGHT MODE OVERRIDES — Lobby Page ===== */
+[data-theme="light"] html,
+[data-theme="light"] body {
+    background: #F5F0E8;
+    color: #1A1408;
+}
+
+[data-theme="light"] body::before {
+    background-image:
+        linear-gradient(rgba(165, 117, 12, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(165, 117, 12, 0.04) 1px, transparent 1px);
+}
+
+[data-theme="light"] .entry-card {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(165, 117, 12, 0.2);
+}
+
+[data-theme="light"] .entry-card:hover {
+    box-shadow: 0 0 30px rgba(165, 117, 12, 0.08);
+}
+
+[data-theme="light"] .entry-card-desc {
+    color: rgba(26, 20, 8, 0.55);
+}
+
+[data-theme="light"] .lobby-label {
+    color: rgba(26, 20, 8, 0.55);
+}
+
+[data-theme="light"] .lobby-input {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(165, 117, 12, 0.25);
+    color: #1A1408;
+}
+
+[data-theme="light"] .lobby-input:focus {
+    border-color: rgba(165, 117, 12, 0.6);
+    box-shadow: 0 0 0 3px rgba(165, 117, 12, 0.1);
+}
+
+[data-theme="light"] .lobby-room-wrap {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(165, 117, 12, 0.2);
+}
+
+[data-theme="light"] .room-code-label {
+    color: rgba(26, 20, 8, 0.55);
+}
+
+[data-theme="light"] .players-section-title {
+    color: rgba(26, 20, 8, 0.55);
+}
+
+[data-theme="light"] .player-slot {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(165, 117, 12, 0.18);
+}
+
+[data-theme="light"] .player-slot.is-host {
+    background: rgba(165, 117, 12, 0.06);
+    border-color: rgba(165, 117, 12, 0.3);
+}
+
+[data-theme="light"] .player-slot-name {
+    color: #1A1408;
+}
+
+[data-theme="light"] .player-slot-empty {
+    border-color: rgba(165, 117, 12, 0.2);
+}
+
+[data-theme="light"] .connection-chip {
+    background: rgba(245, 240, 232, 0.92);
+    border-color: rgba(165, 117, 12, 0.25);
+    color: rgba(26, 20, 8, 0.6);
+}
+
+[data-theme="light"] .connection-chip.disconnected {
+    border-color: rgba(220, 50, 50, 0.4);
+    color: #CC2020;
+    background: rgba(245, 240, 232, 0.92);
+}
+
+[data-theme="light"] .connection-chip.disconnected .connection-dot {
+    background: #CC2020;
+}
+
+[data-theme="light"] .lobby-toast {
+    background: rgba(245, 240, 232, 0.95);
+    border-color: rgba(165, 117, 12, 0.2);
+    color: #1A1408;
+}
+
+[data-theme="light"] .waiting-message {
+    color: rgba(26, 20, 8, 0.55);
+}
+
+[data-theme="light"] .min-players-note {
+    color: rgba(26, 20, 8, 0.45);
+}
+
+[data-theme="light"] .lobby-subtitle {
+    color: rgba(26, 20, 8, 0.5);
 }

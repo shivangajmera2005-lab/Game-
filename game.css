@@ -2416,3 +2416,202 @@ body.card-overlay-open .game-footer {
 }
 
 /* Card overlay-active styles removed, behavior now fully handled via CSS :hover */
+
+/* ===== LIGHT MODE OVERRIDES — Game Page ===== */
+[data-theme="light"] .game-container {
+    background: radial-gradient(circle at 50% 50%, #EDE7DB 0%, #DDD5C5 100%);
+}
+
+[data-theme="light"] .game-header {
+    background: rgba(237, 231, 219, 0.85);
+    border-bottom-color: rgba(165, 117, 12, 0.15);
+}
+
+[data-theme="light"] .roster-card {
+    background: rgba(245, 240, 232, 0.8);
+    border-color: rgba(165, 117, 12, 0.15);
+}
+
+[data-theme="light"] .roster-card.active-turn {
+    background: rgba(255, 215, 0, 0.08);
+}
+
+[data-theme="light"] .roster-name {
+    color: #1A1408;
+}
+
+[data-theme="light"] .action-log-wrap,
+[data-theme="light"] .commands-panel {
+    background: rgba(237, 231, 219, 0.6);
+    border-color: rgba(165, 117, 12, 0.2);
+}
+
+[data-theme="light"] .log-entry {
+    color: #3A3020;
+}
+
+[data-theme="light"] .log-entry strong {
+    color: #1A1408;
+}
+
+[data-theme="light"] .action-btn {
+    background: rgba(237, 231, 219, 0.7);
+    border-color: rgba(165, 117, 12, 0.25);
+    color: #1A1408;
+}
+
+[data-theme="light"] .action-btn:hover:not(:disabled) {
+    background: rgba(165, 117, 12, 0.1);
+    border-color: rgba(165, 117, 12, 0.5);
+    color: #1A1408;
+    box-shadow: 0 0 10px rgba(165, 117, 12, 0.1);
+}
+
+[data-theme="light"] .game-footer {
+    background: linear-gradient(0deg, rgba(237, 231, 219, 0.98) 0%, rgba(237, 231, 219, 0.5) 100%);
+    border-top-color: rgba(165, 117, 12, 0.1);
+}
+
+/* ── Game Cards: use rich saturated colors so they pop on the light background ── */
+
+/* Default / unknown card type */
+[data-theme="light"] .game-card {
+    background: linear-gradient(145deg, #2A2240 0%, #1A1530 100%);
+    border: 2px solid rgba(255, 215, 0, 0.45);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.22);
+}
+
+[data-theme="light"] .game-card .card-title {
+    color: #FFFFFF;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+}
+
+[data-theme="light"] .game-card .card-desc {
+    color: rgba(255, 255, 255, 0.72);
+}
+
+[data-theme="light"] .game-card .card-cost {
+    background: rgba(0,0,0,0.55);
+    color: #FFD700;
+    border-color: rgba(255, 215, 0, 0.7);
+}
+
+/* ATTACK — deep crimson red */
+[data-theme="light"] .game-card.card-attack {
+    background: linear-gradient(145deg, #7A1010 0%, #550A0A 100%);
+    border: 2px solid rgba(255, 68, 68, 0.75);
+    box-shadow: 0 6px 20px rgba(200, 0, 0, 0.3);
+}
+[data-theme="light"] .game-card.card-attack:hover,
+[data-theme="light"] .game-card.card-attack.active {
+    border-color: #FF4444;
+    box-shadow: 0 12px 30px rgba(255, 45, 45, 0.5), 0 0 18px rgba(255, 45, 45, 0.3);
+}
+[data-theme="light"] .game-card.card-attack .card-cost {
+    background: rgba(100, 0, 0, 0.7);
+    border-color: #FF4444;
+}
+
+/* DEFENCE — deep emerald green */
+[data-theme="light"] .game-card.card-defence {
+    background: linear-gradient(145deg, #0B5E28 0%, #063D18 100%);
+    border: 2px solid rgba(0, 255, 136, 0.65);
+    box-shadow: 0 6px 20px rgba(0, 150, 80, 0.3);
+}
+[data-theme="light"] .game-card.card-defence:hover,
+[data-theme="light"] .game-card.card-defence.active {
+    border-color: #00FF88;
+    box-shadow: 0 12px 30px rgba(0, 255, 136, 0.5), 0 0 18px rgba(0, 255, 136, 0.3);
+}
+[data-theme="light"] .game-card.card-defence .card-cost {
+    background: rgba(0, 60, 20, 0.7);
+    border-color: #00FF88;
+}
+
+/* CLAIM L1 — deep ocean blue */
+[data-theme="light"] .game-card.card-claim-l1 {
+    background: linear-gradient(145deg, #0A3A6B 0%, #061F40 100%);
+    border: 2px solid rgba(0, 200, 255, 0.65);
+    box-shadow: 0 6px 20px rgba(0, 100, 200, 0.3);
+}
+[data-theme="light"] .game-card.card-claim-l1:hover,
+[data-theme="light"] .game-card.card-claim-l1.active {
+    border-color: #00CCFF;
+    box-shadow: 0 12px 30px rgba(0, 170, 255, 0.5), 0 0 18px rgba(0, 170, 255, 0.3);
+}
+[data-theme="light"] .game-card.card-claim-l1 .card-cost {
+    background: rgba(0, 30, 80, 0.7);
+    border-color: #00CCFF;
+}
+
+/* CLAIM L2 — rich dark amber/saffron */
+[data-theme="light"] .game-card.card-claim-l2 {
+    background: linear-gradient(145deg, #6B4500 0%, #3D2600 100%);
+    border: 2px solid rgba(255, 200, 0, 0.7);
+    box-shadow: 0 6px 20px rgba(180, 120, 0, 0.3);
+}
+[data-theme="light"] .game-card.card-claim-l2:hover,
+[data-theme="light"] .game-card.card-claim-l2.active {
+    border-color: #FFCC00;
+    box-shadow: 0 12px 30px rgba(255, 200, 0, 0.5), 0 0 18px rgba(255, 200, 0, 0.3);
+}
+[data-theme="light"] .game-card.card-claim-l2 .card-cost {
+    background: rgba(60, 35, 0, 0.7);
+    border-color: #FFCC00;
+}
+
+/* CLAIM L3 — dark blood red */
+[data-theme="light"] .game-card.card-claim-l3 {
+    background: linear-gradient(145deg, #6B0808 0%, #3D0404 100%);
+    border: 2px solid rgba(255, 80, 80, 0.65);
+    box-shadow: 0 6px 20px rgba(160, 0, 0, 0.3);
+}
+[data-theme="light"] .game-card.card-claim-l3:hover,
+[data-theme="light"] .game-card.card-claim-l3.active {
+    border-color: #FF4444;
+    box-shadow: 0 12px 30px rgba(255, 45, 45, 0.5), 0 0 18px rgba(255, 45, 45, 0.3);
+}
+[data-theme="light"] .game-card.card-claim-l3 .card-cost {
+    background: rgba(70, 0, 0, 0.7);
+    border-color: #FF4444;
+}
+
+/* CLAIM L4 — rich dark gold / imperial */
+[data-theme="light"] .game-card.card-claim-l4 {
+    background: linear-gradient(145deg, #5A3E00 0%, #3A2800 100%);
+    border: 2px solid rgba(255, 215, 0, 0.8);
+    box-shadow: 0 6px 20px rgba(200, 160, 0, 0.35), 0 0 12px rgba(255, 215, 0, 0.15);
+}
+[data-theme="light"] .game-card.card-claim-l4:hover,
+[data-theme="light"] .game-card.card-claim-l4.active {
+    border-color: #FFD700;
+    box-shadow: 0 12px 30px rgba(255, 215, 0, 0.55), 0 0 22px rgba(255, 215, 0, 0.3);
+}
+[data-theme="light"] .game-card.card-claim-l4 .card-cost {
+    background: rgba(60, 40, 0, 0.7);
+    border-color: #FFD700;
+}
+
+/* Hover lift on all cards */
+[data-theme="light"] .game-card:hover,
+[data-theme="light"] .game-card.active {
+    box-shadow: 0 14px 32px rgba(0,0,0,0.35);
+}
+
+/* Selected card glow override */
+[data-theme="light"] .game-card.selected-card {
+    border-color: #FFD700 !important;
+    box-shadow: 0 0 28px rgba(255, 215, 0, 0.7) !important;
+}
+
+[data-theme="light"] .current-turn-indicator span {
+    color: #1A1408;
+}
+
+[data-theme="light"] .turn-transition-overlay {
+    background: rgba(245, 240, 232, 0.88);
+}
+
+[data-theme="light"] .turn-transition-content {
+    background: rgba(237, 231, 219, 0.97);
+}
