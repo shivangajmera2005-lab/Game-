@@ -2044,6 +2044,11 @@ footer {
     display: none;
   }
 
+  /* Hide theme toggle on mobile on main page */
+  nav .theme-toggle-btn {
+    display: none;
+  }
+
   .hamburger {
     display: flex;
   }
