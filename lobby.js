@@ -289,12 +289,12 @@
 
         if (isSpectator) {
             showToast(`Entering Spectator Mode...`, 'success');
-            localStorage.setItem('empireClimbRoomCode', roomCode);
-            localStorage.setItem('empireClimbIsMultiplayer', 'true');
+            sessionStorage.setItem('empireClimbRoomCode', roomCode);
+            sessionStorage.setItem('empireClimbIsMultiplayer', 'true');
             if (gameState) {
-                localStorage.setItem('empireClimbSpectatorInitialState', JSON.stringify(gameState));
+                sessionStorage.setItem('empireClimbSpectatorInitialState', JSON.stringify(gameState));
             } else {
-                localStorage.removeItem('empireClimbSpectatorInitialState');
+                sessionStorage.removeItem('empireClimbSpectatorInitialState');
             }
             setTimeout(() => {
                 window.location.href = `game.html?room=${roomCode}&spectator=true`;
@@ -344,13 +344,13 @@
         showToast('Entering the battlefield! Prepare to rise...', 'success');
 
         // Write player data in the exact format game.js expects
-        localStorage.setItem('empireClimbPlayers', JSON.stringify(players));
+        sessionStorage.setItem('empireClimbPlayers', JSON.stringify(players));
 
         // CRITICAL: save room context so game.js knows this is a shared multiplayer game
-        localStorage.setItem('empireClimbRoomCode', currentRoomCode);
-        localStorage.setItem('empireClimbIsMultiplayer', 'true');
+        sessionStorage.setItem('empireClimbRoomCode', currentRoomCode);
+        sessionStorage.setItem('empireClimbIsMultiplayer', 'true');
         // Tell game.js whether this client is the host (host deals cards & pushes first state)
-        localStorage.setItem('empireClimbIsHost', isHost ? 'true' : 'false');
+        sessionStorage.setItem('empireClimbIsHost', isHost ? 'true' : 'false');
 
         // Small delay so all animations can settle
         setTimeout(() => {
@@ -402,7 +402,7 @@
         }
 
         myPlayerName = name;
-        localStorage.setItem('empireClimbMyName', name);
+        sessionStorage.setItem('empireClimbMyName', name);
         setLoading(btnCreate, true);
         socket.emit('create-room', { playerName: name });
     });
@@ -430,7 +430,7 @@
         }
 
         myPlayerName = name;
-        localStorage.setItem('empireClimbMyName', name);
+        sessionStorage.setItem('empireClimbMyName', name);
         setLoading(btnJoin, true);
         socket.emit('join-room', { roomCode: code, playerName: name });
     });

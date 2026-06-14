@@ -38,15 +38,18 @@
         <span class="spec-dot">●</span> SPECTATING &nbsp;|&nbsp; ROOM: <span id="spec-room-code">-</span>
     </div>
 
-    <!-- Theme Toggle Button -->
-    <button class="theme-toggle-btn" id="theme-toggle" style="position:fixed;top:16px;right:16px;z-index:2000;" aria-label="Switch to light mode" title="Switch to light mode">
-        <span class="theme-icon">☀️</span>
-        <span class="theme-label">Light</span>
-    </button>
+    <!-- Top-Right Controls Container -->
+    <div class="top-right-controls" style="position: fixed; top: 15px; right: 20px; z-index: 10000; display: flex; align-items: center; gap: 12px;">
+        <!-- Theme Toggle Button -->
+        <button class="theme-toggle-btn" id="theme-toggle" style="position: relative;" aria-label="Switch to light mode" title="Switch to light mode">
+            <span class="theme-icon">☀️</span>
+            <span class="theme-label">Light</span>
+        </button>
 
-    <!-- Host Room Code Badge -->
-    <div id="host-room-badge" class="host-room-badge" style="display: none;">
-        <span>🔑 ROOM:</span> <span id="host-room-code">-</span>
+        <!-- Host Room Code Badge -->
+        <div id="host-room-badge" class="host-room-badge" style="display: none; position: relative; top: auto; right: auto;">
+            <span>🔑 ROOM:</span> <span id="host-room-code">-</span>
+        </div>
     </div>
 
     <div class="game-container">

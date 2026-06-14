@@ -75,25 +75,25 @@ function initGame() {
     const roomParam = urlParams.get('room');
     if (roomParam) {
         roomCode = roomParam;
-        localStorage.setItem('empireClimbRoomCode', roomParam);
+        sessionStorage.setItem('empireClimbRoomCode', roomParam);
         isMultiplayer = true;
-        localStorage.setItem('empireClimbIsMultiplayer', 'true');
+        sessionStorage.setItem('empireClimbIsMultiplayer', 'true');
     } else {
-        roomCode = localStorage.getItem('empireClimbRoomCode');
-        isMultiplayer = localStorage.getItem('empireClimbIsMultiplayer') === 'true';
+        roomCode = sessionStorage.getItem('empireClimbRoomCode');
+        isMultiplayer = sessionStorage.getItem('empireClimbIsMultiplayer') === 'true';
     }
 
     const nameParam = urlParams.get('name');
     if (nameParam) {
-        localStorage.setItem('empireClimbMyName', nameParam);
+        sessionStorage.setItem('empireClimbMyName', nameParam);
     }
 
     const hostParam = urlParams.get('host');
     if (hostParam !== null) {
         isHost = hostParam === 'true';
-        localStorage.setItem('empireClimbIsHost', isHost ? 'true' : 'false');
+        sessionStorage.setItem('empireClimbIsHost', isHost ? 'true' : 'false');
     } else {
-        isHost = localStorage.getItem('empireClimbIsHost') === 'true';
+        isHost = sessionStorage.getItem('empireClimbIsHost') === 'true';
     }
 
     isSpectator = urlParams.get('spectator') === 'true';
@@ -128,7 +128,7 @@ function initGame() {
         connectSocketSync();
 
         // Load initial state if available
-        const initialStateData = localStorage.getItem('empireClimbSpectatorInitialState');
+        const initialStateData = sessionStorage.getItem('empireClimbSpectatorInitialState');
         if (initialStateData) {
             try {
                 applyGameState(JSON.parse(initialStateData));
@@ -140,7 +140,7 @@ function initGame() {
     }
 
     // Normal game loading
-    const data = localStorage.getItem('empireClimbPlayers');
+    const data = sessionStorage.getItem('empireClimbPlayers');
     if (!data) {
         window.location.href = 'players.html';
         return;
@@ -202,7 +202,8 @@ function serializeGameState() {
             tokens: p.tokens,
             flags: p.flags,
             bankrupt: p.bankrupt,
-            hand: p.hand
+            hand: p.hand,
+            connected: p.connected !== false
         })),
         board: board,
         currentPlayerIndex: currentPlayerIndex,
@@ -283,7 +284,7 @@ function connectSocketSync() {
             socket.emit('join-room', { roomCode, playerName: 'Spectator_' + Math.floor(Math.random()*1000) });
         } else if (roomCode) {
             // Join as active player
-            const myName = localStorage.getItem('empireClimbMyName') || 'Host';
+            const myName = sessionStorage.getItem('empireClimbMyName') || 'Host';
             socket.emit('join-room', { roomCode, playerName: myName });
 
             // Only the HOST pushes the authoritative initial state.
@@ -301,7 +302,7 @@ function connectSocketSync() {
 
     socket.on('local-room-created', ({ roomCode: newCode }) => {
         roomCode = newCode;
-        localStorage.setItem('empireClimbRoomCode', roomCode);
+        sessionStorage.setItem('empireClimbRoomCode', roomCode);
         console.log('[game] local room created for spectating:', roomCode);
         
         // Show host room badge
@@ -352,7 +353,7 @@ function connectSocketSync() {
 
     socket.on('game-state-update', (state) => {
         // A guest is "waiting for init" if their players have no hands yet
-        // (localStorage has players but the host hasn't dealt cards yet).
+        // (sessionStorage has players but the host hasn't dealt cards yet).
         const guestWaitingForInit = isMultiplayer && !isHost &&
             (players.length === 0 || players.every(p => !p.hand || p.hand.length === 0));
 
@@ -379,7 +380,7 @@ function connectSocketSync() {
     });
 
     socket.on('request-defense', async ({ attackerId, defenderId, attackPower, attackCardName, attackCardDesc }) => {
-        const myName = localStorage.getItem('empireClimbMyName') || (isSpectator ? '' : 'Host');
+        const myName = sessionStorage.getItem('empireClimbMyName') || (isSpectator ? '' : 'Host');
         const defender = players.find(p => p.id === defenderId);
         if (defender && defender.name === myName) {
             console.log('[game] Opening defense modal locally for:', myName);
@@ -393,7 +394,7 @@ function connectSocketSync() {
     });
 
     socket.on('request-pay-or-lose', async ({ defenderId, cost, segmentName }) => {
-        const myName = localStorage.getItem('empireClimbMyName') || (isSpectator ? '' : 'Host');
+        const myName = sessionStorage.getItem('empireClimbMyName') || (isSpectator ? '' : 'Host');
         const defender = players.find(p => p.id === defenderId);
         if (defender && defender.name === myName) {
             console.log('[game] Opening pay-or-lose modal locally for:', myName);
@@ -433,7 +434,7 @@ function connectSocketSync() {
         const msgContainer = document.getElementById('chat-messages');
         if (!msgContainer) return;
 
-        const myName = localStorage.getItem('empireClimbMyName') || (isSpectator ? '' : 'Host');
+        const myName = sessionStorage.getItem('empireClimbMyName') || (isSpectator ? '' : 'Host');
         const isSelf = sender === myName;
         const bubble = document.createElement('div');
         bubble.className = `chat-msg-bubble ${isSelf ? 'self' : 'other'}`;
@@ -531,7 +532,7 @@ function logAction(msg) {
 function isLocalTurn() {
     if (isSpectator) return false;
     if (!isMultiplayer) return true;
-    const localPlayerName = localStorage.getItem('empireClimbMyName');
+    const localPlayerName = sessionStorage.getItem('empireClimbMyName');
     const cp = players[currentPlayerIndex];
     return cp && cp.name === localPlayerName;
 }
@@ -547,8 +548,13 @@ function updateUI() {
         card.style.opacity = p.bankrupt || isOffline ? '0.5' : '1';
         
         // Opponent hand card backs markup
+        const localPlayerName = sessionStorage.getItem('empireClimbMyName') || (isSpectator ? '' : 'Host');
+        const isMyLocalCard = isMultiplayer
+            ? (p.name === localPlayerName)
+            : (i === currentPlayerIndex);
+
         let handMarkup = '';
-        if (i !== currentPlayerIndex) {
+        if (!isMyLocalCard) {
             const handSize = p.hand ? p.hand.length : 0;
             handMarkup = `<div class="roster-hand">`;
             for (let c = 0; c < Math.min(handSize, 5); c++) {
@@ -629,16 +635,29 @@ function updateUI() {
 
 function renderHand() {
     handEl.innerHTML = '';
-    const cp = players[currentPlayerIndex];
-    if (!cp || cp.hand.length === 0) {
-        handEl.innerHTML = '<div style="color:#666; font-size:0.8rem; text-align:center;">Hand is empty</div>';
+    
+    let renderPlayer = null;
+    if (isMultiplayer) {
+        const localPlayerName = sessionStorage.getItem('empireClimbMyName') || (isSpectator ? '' : 'Host');
+        renderPlayer = players.find(p => p.name === localPlayerName);
+    } else {
+        renderPlayer = players[currentPlayerIndex];
+    }
+
+    if (isSpectator) {
+        handEl.innerHTML = '<div style="color:#888; font-size:0.8rem; text-align:center; font-family:\'Orbitron\', monospace; letter-spacing:0.1em; padding: 15px;">SPECTATING MODE</div>';
+        return;
+    }
+
+    if (!renderPlayer || !renderPlayer.hand || renderPlayer.hand.length === 0) {
+        handEl.innerHTML = '<div style="color:#666; font-size:0.8rem; text-align:center; padding: 15px;">Hand is empty</div>';
         return;
     }
     
     const showActions = isLocalTurn();
-    const totalCards = cp.hand.length;
+    const totalCards = renderPlayer.hand.length;
     
-    cp.hand.forEach((card, idx) => {
+    renderPlayer.hand.forEach((card, idx) => {
         const cEl = document.createElement('div');
         
         let cardClass = '';
@@ -1419,7 +1438,7 @@ async function executeBiddingWar(challenger, defender, segment, segEl, onComplet
     const rightTokenEl = document.getElementById('bid-right-tokens-live');
 
     function refreshAddButtons(side, bidder, myBid) {
-        const myName = localStorage.getItem('empireClimbMyName') || (isSpectator ? '' : 'Host');
+        const myName = sessionStorage.getItem('empireClimbMyName') || (isSpectator ? '' : 'Host');
         const isMySide = !isMultiplayer || bidder.name === myName;
         const isMyTurn = !isMultiplayer || activeSide === side;
 
@@ -1522,7 +1541,7 @@ async function executeBiddingWar(challenger, defender, segment, segEl, onComplet
 
     function onTimerExpire() {
         if (resolved) return;
-        const myName = localStorage.getItem('empireClimbMyName') || (isSpectator ? '' : 'Host');
+        const myName = sessionStorage.getItem('empireClimbMyName') || (isSpectator ? '' : 'Host');
         // Only active bidder triggers timeout fold in multiplayer to keep it clean
         if (!isMultiplayer || activeBidder.name === myName) {
             logAction(`⏱️ Time expired! <strong>${activeBidder.name}</strong> auto-folded.`);
