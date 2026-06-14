@@ -282,6 +282,42 @@ io.on('connection', (socket) => {
         socket.to(code).emit('game-state-update', gameState);
     });
 
+    // ── REQUEST DEFENSE ──────────────────────────────────────────────
+    socket.on('request-defense', ({ roomCode, attackerId, defenderId, attackPower, attackCardName, attackCardDesc }) => {
+        const code = (roomCode || '').trim().toUpperCase();
+        socket.to(code).emit('request-defense', { attackerId, defenderId, attackPower, attackCardName, attackCardDesc });
+    });
+
+    // ── DEFENSE RESPONSE ─────────────────────────────────────────────
+    socket.on('defense-response', ({ roomCode, blocked, defenseCard }) => {
+        const code = (roomCode || '').trim().toUpperCase();
+        socket.to(code).emit('defense-response', { blocked, defenseCard });
+    });
+
+    // ── REQUEST PAY OR LOSE ──────────────────────────────────────────
+    socket.on('request-pay-or-lose', ({ roomCode, defenderId, cost, segmentName }) => {
+        const code = (roomCode || '').trim().toUpperCase();
+        socket.to(code).emit('request-pay-or-lose', { defenderId, cost, segmentName });
+    });
+
+    // ── PAY OR LOSE RESPONSE ──────────────────────────────────────────
+    socket.on('pay-or-lose-response', ({ roomCode, action }) => {
+        const code = (roomCode || '').trim().toUpperCase();
+        socket.to(code).emit('pay-or-lose-response', { action });
+    });
+
+    // ── START BID WAR ────────────────────────────────────────────────
+    socket.on('start-bid-war', ({ roomCode, challengerId, defenderId, segmentId }) => {
+        const code = (roomCode || '').trim().toUpperCase();
+        socket.to(code).emit('start-bid-war', { challengerId, defenderId, segmentId });
+    });
+
+    // ── BID WAR UPDATE ───────────────────────────────────────────────
+    socket.on('bid-war-update', ({ roomCode, payload }) => {
+        const code = (roomCode || '').trim().toUpperCase();
+        socket.to(code).emit('bid-war-update', payload);
+    });
+
     // ── SEND CHAT MESSAGE ─────────────────────────────────────────────
     socket.on('send-chat-msg', ({ roomCode, message }) => {
         const code = (roomCode || '').trim().toUpperCase();

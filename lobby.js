@@ -354,7 +354,7 @@
 
         // Small delay so all animations can settle
         setTimeout(() => {
-            window.location.href = 'game.html';
+            window.location.href = `game.html?room=${currentRoomCode}&name=${encodeURIComponent(myPlayerName)}&host=${isHost}`;
         }, 1200);
     });
 

@@ -69,12 +69,37 @@ const handEl = document.getElementById('player-hand');
 
 // Initialize
 function initGame() {
-    // Read query parameters to check if spectator
+    // Read query parameters
     const urlParams = new URLSearchParams(window.location.search);
-    roomCode = urlParams.get('room') || localStorage.getItem('empireClimbRoomCode');
+    
+    const roomParam = urlParams.get('room');
+    if (roomParam) {
+        roomCode = roomParam;
+        localStorage.setItem('empireClimbRoomCode', roomParam);
+        isMultiplayer = true;
+        localStorage.setItem('empireClimbIsMultiplayer', 'true');
+    } else {
+        roomCode = localStorage.getItem('empireClimbRoomCode');
+        isMultiplayer = localStorage.getItem('empireClimbIsMultiplayer') === 'true';
+    }
+
+    const nameParam = urlParams.get('name');
+    if (nameParam) {
+        localStorage.setItem('empireClimbMyName', nameParam);
+    }
+
+    const hostParam = urlParams.get('host');
+    if (hostParam !== null) {
+        isHost = hostParam === 'true';
+        localStorage.setItem('empireClimbIsHost', isHost ? 'true' : 'false');
+    } else {
+        isHost = localStorage.getItem('empireClimbIsHost') === 'true';
+    }
+
     isSpectator = urlParams.get('spectator') === 'true';
-    isMultiplayer = localStorage.getItem('empireClimbIsMultiplayer') === 'true' || isSpectator;
-    isHost = localStorage.getItem('empireClimbIsHost') === 'true';
+    if (isSpectator) {
+        isMultiplayer = true;
+    }
 
     // Init board
     document.querySelectorAll('.segment').forEach(seg => {
@@ -350,6 +375,47 @@ function connectSocketSync() {
                     setTimeout(() => overlay.classList.remove('visible'), 1500);
                 }
             }
+        }
+    });
+
+    socket.on('request-defense', async ({ attackerId, defenderId, attackPower, attackCardName, attackCardDesc }) => {
+        const myName = localStorage.getItem('empireClimbMyName') || (isSpectator ? '' : 'Host');
+        const defender = players.find(p => p.id === defenderId);
+        if (defender && defender.name === myName) {
+            console.log('[game] Opening defense modal locally for:', myName);
+            const result = await openDefenseModal(attackerId, defender, attackPower, attackCardName, attackCardDesc);
+            socket.emit('defense-response', {
+                roomCode,
+                blocked: result.blocked,
+                cardIdx: result.cardIdx
+            });
+        }
+    });
+
+    socket.on('request-pay-or-lose', async ({ defenderId, cost, segmentName }) => {
+        const myName = localStorage.getItem('empireClimbMyName') || (isSpectator ? '' : 'Host');
+        const defender = players.find(p => p.id === defenderId);
+        if (defender && defender.name === myName) {
+            console.log('[game] Opening pay-or-lose modal locally for:', myName);
+            await openPayOrLoseModal(defender, cost, segmentName, () => {
+                socket.emit('pay-or-lose-response', { roomCode, action: 'pay' });
+            }, () => {
+                socket.emit('pay-or-lose-response', { roomCode, action: 'lose' });
+            });
+        }
+    });
+
+    socket.on('start-bid-war', ({ challengerId, defenderId, segmentId }) => {
+        console.log('[game] start-bid-war received:', challengerId, defenderId, segmentId);
+        const challenger = players.find(p => p.id === challengerId);
+        const defender = players.find(p => p.id === defenderId);
+        const segment = board[segmentId];
+        const segEl = document.querySelector(`[data-id="${segmentId}"]`);
+        
+        if (challenger && defender && segment && segEl) {
+            executeBiddingWar(challenger, defender, segment, segEl, () => {
+                console.log('[game] local bidding war resolved');
+            });
         }
     });
 
@@ -1015,6 +1081,7 @@ if (cardBackdrop) {
 
 if(btnBuyFlag) {
     btnBuyFlag.addEventListener('click', () => {
+        if (isMultiplayer && !isLocalTurn()) return;
         const cp = players[currentPlayerIndex];
         if (cp.tokens >= 5 && cp.flags < 12) { // must leave 3 tokens
             cp.tokens -= 2;
@@ -1027,6 +1094,7 @@ if(btnBuyFlag) {
 
 if(btnPass) {
     btnPass.addEventListener('click', () => {
+        if (isMultiplayer && !isLocalTurn()) return;
         const cp = players[currentPlayerIndex];
         cp.tokens -= 2;
         if (cp.tokens < 3) {
@@ -1040,7 +1108,13 @@ if(btnPass) {
 }
 
 if(btnEndGame) {
-    btnEndGame.addEventListener('click', endGame);
+    btnEndGame.addEventListener('click', () => {
+        if (isMultiplayer && !isHost) {
+            showToast('info', 'Host Only', 'Only the Host can manually end the conquest.');
+            return;
+        }
+        endGame();
+    });
 }
 
 function promptBuyFlagIfNeeded(player) {
@@ -1174,13 +1248,13 @@ function openDefenseModal(attackerId, defender, attackPower, attackCardName, att
                     logAction(`<strong>${defender.name}</strong> played a Defense Card (Power ${card.power}) and blocked the ${attackCardName} from ${attackerName}!`);
                     showToast('defense', 'Attack Blocked!', `${defender.name} used a Defense Card (Power ${card.power}).`);
                     cleanup();
-                    resolve(true); // blocked
+                    resolve({ blocked: true, cardIdx: idx });
                 });
                 cardsEl.appendChild(el);
             });
         }
 
-        const handleSkip = () => { cleanup(); resolve(false); };
+        const handleSkip = () => { cleanup(); resolve({ blocked: false }); };
         skipBtn.addEventListener('click', handleSkip);
 
         function cleanup() {
@@ -1197,8 +1271,36 @@ async function attemptAttackAsync(attackerId, defenderId, attackPower, attackCar
     if (!defender) return false; // not blocked
     const attacker = players.find(p => p.id === attackerId);
     showToast('attack', 'Incoming Attack!', `${attacker ? attacker.name : '?'} used ${attackCardName} (Power ${attackPower}) on ${defender.name}!`);
-    const blocked = await openDefenseModal(attackerId, defender, attackPower, attackCardName, attackCardDesc);
-    return blocked;
+    
+    if (isMultiplayer) {
+        return new Promise(resolve => {
+            console.log('[game] Emitting request-defense to server.');
+            socket.emit('request-defense', {
+                roomCode,
+                attackerId,
+                defenderId,
+                attackPower,
+                attackCardName,
+                attackCardDesc
+            });
+            
+            socket.once('defense-response', ({ blocked, cardIdx }) => {
+                console.log('[game] Received defense-response:', blocked, cardIdx);
+                if (blocked) {
+                    const card = defender.hand[cardIdx];
+                    defender.hand.splice(cardIdx, 1);
+                    lastPlayedCard = card;
+                    const attackerName = attacker ? attacker.name : 'attacker';
+                    logAction(`<strong>${defender.name}</strong> played a Defense Card (Power ${card.power}) and blocked the ${attackCardName} from ${attackerName}!`);
+                    showToast('defense', 'Attack Blocked!', `${defender.name} used a Defense Card (Power ${card.power}).`);
+                }
+                resolve(blocked);
+            });
+        });
+    } else {
+        const result = await openDefenseModal(attackerId, defender, attackPower, attackCardName, attackCardDesc);
+        return result.blocked;
+    }
 }
 
 // ── Enhanced Bid War (split-screen overlay) ─────────────────────
@@ -1317,12 +1419,18 @@ async function executeBiddingWar(challenger, defender, segment, segEl, onComplet
     const rightTokenEl = document.getElementById('bid-right-tokens-live');
 
     function refreshAddButtons(side, bidder, myBid) {
+        const myName = localStorage.getItem('empireClimbMyName') || (isSpectator ? '' : 'Host');
+        const isMySide = !isMultiplayer || bidder.name === myName;
+        const isMyTurn = !isMultiplayer || activeSide === side;
+
         document.querySelectorAll(`.${side}-add`).forEach(btn => {
             const v = parseInt(btn.getAttribute('data-val'), 10);
-            btn.disabled = (v < 0 && myBid + v < 0) || (bidder.tokens - (myBid + v) < 3);
+            btn.disabled = !isMySide || !isMyTurn || (v < 0 && myBid + v < 0) || (bidder.tokens - (myBid + v) < 3);
         });
         const confirmBtn = document.getElementById(`btn-${side}-confirm`);
-        if (confirmBtn) confirmBtn.disabled = myBid <= currentBid;
+        if (confirmBtn) confirmBtn.disabled = !isMySide || !isMyTurn || myBid <= currentBid;
+        const foldBtn = document.getElementById(`btn-${side}-fold`);
+        if (foldBtn) foldBtn.disabled = !isMySide || !isMyTurn;
     }
 
     function addBidAmount(side, val) {
@@ -1372,6 +1480,10 @@ async function executeBiddingWar(challenger, defender, segment, segEl, onComplet
         cleanup();
         stopBidTimer();
 
+        if (isMultiplayer) {
+            socket.off('bid-war-update', onBidWarUpdate);
+        }
+
         if (winner === challenger) {
             challenger.tokens -= winBid;
             logAction(`<strong>${challenger.name}</strong> won the bid war with ${winBid} tokens and stole ${segName}!`);
@@ -1410,12 +1522,58 @@ async function executeBiddingWar(challenger, defender, segment, segEl, onComplet
 
     function onTimerExpire() {
         if (resolved) return;
-        // Current active bidder auto-folds
-        logAction(`⏱️ Time expired! <strong>${activeBidder.name}</strong> auto-folded.`);
-        showToast('info', 'Time Up!', `${activeBidder.name} ran out of time and folded.`);
-        const winner    = inactiveBidder;
-        const winSide   = activeSide === 'left' ? 'right' : 'left';
-        doResolve(winner, activeBidder, currentBid, winSide, winner === defender);
+        const myName = localStorage.getItem('empireClimbMyName') || (isSpectator ? '' : 'Host');
+        // Only active bidder triggers timeout fold in multiplayer to keep it clean
+        if (!isMultiplayer || activeBidder.name === myName) {
+            logAction(`⏱️ Time expired! <strong>${activeBidder.name}</strong> auto-folded.`);
+            showToast('info', 'Time Up!', `${activeBidder.name} ran out of time and folded.`);
+            const winner    = inactiveBidder;
+            const winSide   = activeSide === 'left' ? 'right' : 'left';
+            if (isMultiplayer) {
+                socket.emit('bid-war-update', { roomCode, payload: { type: 'fold', bidderId: activeBidder.id } });
+            }
+            doResolve(winner, activeBidder, currentBid, winSide, winner === defender);
+        }
+    }
+
+    // Unified Socket / Local Update Handler
+    const onBidWarUpdate = ({ type, bidderId, amount }) => {
+        if (resolved) return;
+        if (type === 'confirm') {
+            if (bidderId === challenger.id) {
+                currentBid = amount;
+                leftBid = amount;
+                if (leftTotalEl) leftTotalEl.textContent = leftBid;
+                updateBidHighest(currentBid, challenger.name);
+                logAction(`<strong>${challenger.name}</strong> bids ${currentBid} tokens.`);
+                showToast('bid', 'New Bid!', `${challenger.name} bids ${currentBid} tokens.`);
+                activeBidder   = defender;   inactiveBidder = challenger;
+                activeSide     = 'right';
+            } else {
+                currentBid = amount;
+                rightBid = amount;
+                if (rightTotalEl) rightTotalEl.textContent = rightBid;
+                updateBidHighest(currentBid, defender.name);
+                logAction(`<strong>${defender.name}</strong> bids ${currentBid} tokens.`);
+                showToast('bid', 'New Bid!', `${defender.name} bids ${currentBid} tokens.`);
+                activeBidder   = challenger; inactiveBidder = defender;
+                activeSide     = 'left';
+            }
+            setActiveSideUI();
+            startBidTimer(30, onTimerExpire);
+        } else if (type === 'fold') {
+            if (bidderId === challenger.id) {
+                logAction(`<strong>${challenger.name}</strong> folded the bid.`);
+                doResolve(defender, challenger, currentBid, 'right', true);
+            } else {
+                logAction(`<strong>${defender.name}</strong> folded the bid.`);
+                doResolve(challenger, defender, currentBid, 'left', false);
+            }
+        }
+    };
+
+    if (isMultiplayer) {
+        socket.on('bid-war-update', onBidWarUpdate);
     }
 
     // Confirm handlers
@@ -1427,36 +1585,32 @@ async function executeBiddingWar(challenger, defender, segment, segEl, onComplet
     const leftConfirmH = () => {
         if (activeSide !== 'left' || resolved) return;
         if (leftBid <= currentBid) return;
-        currentBid = leftBid;
-        updateBidHighest(currentBid, challenger.name);
-        logAction(`<strong>${challenger.name}</strong> bids ${currentBid} tokens.`);
-        showToast('bid', 'New Bid!', `${challenger.name} bids ${currentBid} tokens.`);
-        activeBidder   = defender;   inactiveBidder = challenger;
-        activeSide     = 'right';
-        setActiveSideUI();
-        startBidTimer(30, onTimerExpire);
+        if (isMultiplayer) {
+            socket.emit('bid-war-update', { roomCode, payload: { type: 'confirm', bidderId: challenger.id, amount: leftBid } });
+        }
+        onBidWarUpdate({ type: 'confirm', bidderId: challenger.id, amount: leftBid });
     };
     const rightConfirmH = () => {
         if (activeSide !== 'right' || resolved) return;
         if (rightBid <= currentBid) return;
-        currentBid = rightBid;
-        updateBidHighest(currentBid, defender.name);
-        logAction(`<strong>${defender.name}</strong> bids ${currentBid} tokens.`);
-        showToast('bid', 'New Bid!', `${defender.name} bids ${currentBid} tokens.`);
-        activeBidder   = challenger; inactiveBidder = defender;
-        activeSide     = 'left';
-        setActiveSideUI();
-        startBidTimer(30, onTimerExpire);
+        if (isMultiplayer) {
+            socket.emit('bid-war-update', { roomCode, payload: { type: 'confirm', bidderId: defender.id, amount: rightBid } });
+        }
+        onBidWarUpdate({ type: 'confirm', bidderId: defender.id, amount: rightBid });
     };
     const leftFoldH = () => {
         if (activeSide !== 'left' || resolved) return;
-        logAction(`<strong>${challenger.name}</strong> folded the bid.`);
-        doResolve(defender, challenger, currentBid, 'right', true);
+        if (isMultiplayer) {
+            socket.emit('bid-war-update', { roomCode, payload: { type: 'fold', bidderId: challenger.id } });
+        }
+        onBidWarUpdate({ type: 'fold', bidderId: challenger.id });
     };
     const rightFoldH = () => {
         if (activeSide !== 'right' || resolved) return;
-        logAction(`<strong>${defender.name}</strong> folded the bid.`);
-        doResolve(challenger, defender, currentBid, 'left', false);
+        if (isMultiplayer) {
+            socket.emit('bid-war-update', { roomCode, payload: { type: 'fold', bidderId: defender.id } });
+        }
+        onBidWarUpdate({ type: 'fold', bidderId: defender.id });
     };
 
     if (leftConfirmBtn)  leftConfirmBtn.addEventListener('click',  leftConfirmH);
@@ -1470,6 +1624,7 @@ async function executeBiddingWar(challenger, defender, segment, segEl, onComplet
 }
 
 function playCard(handIdx) {
+    if (isMultiplayer && !isLocalTurn()) return;
     overlayedCardIdx = -1;
     document.body.classList.remove('card-overlay-open');
     const backdrop = document.getElementById('card-backdrop');
@@ -1508,6 +1663,7 @@ function cancelTargeting() {
 }
 
 function wasteCard(handIdx) {
+    if (isMultiplayer && !isLocalTurn()) return;
     overlayedCardIdx = -1;
     document.body.classList.remove('card-overlay-open');
     const backdrop = document.getElementById('card-backdrop');
@@ -1642,15 +1798,37 @@ async function handleTargetingClick(id, segment, segEl) {
                 // We'll auto-resolve: defender pays if they can afford it, otherwise loses segment
                 // For pass-and-play, show defense-payment modal inline
                 await new Promise(resolvePay => {
-                    openPayOrLoseModal(defender, 3, segEl.innerText.split('\n')[0].trim(), () => {
-                        defender.tokens -= 3;
-                        logAction(`${defender.name} paid 3 tokens to hold their ground against ATTACK!`);
-                        showToast('defense','Segment Held!',`${defender.name} paid 3 tokens to hold the segment.`);
-                        resolvePay();
-                    }, async () => {
-                        await executeAttackSteal(cp, defender, segment, id);
-                        resolvePay();
-                    });
+                    if (isMultiplayer) {
+                        console.log('[game] Emitting request-pay-or-lose to server.');
+                        socket.emit('request-pay-or-lose', {
+                            roomCode,
+                            defenderId: defender.id,
+                            cost: 3,
+                            segmentName: segEl.innerText.split('\n')[0].trim()
+                        });
+                        
+                        socket.once('pay-or-lose-response', async ({ action }) => {
+                            console.log('[game] Received pay-or-lose-response:', action);
+                            if (action === 'pay') {
+                                defender.tokens -= 3;
+                                logAction(`${defender.name} paid 3 tokens to hold their ground against ATTACK!`);
+                                showToast('defense','Segment Held!',`${defender.name} paid 3 tokens to hold the segment.`);
+                            } else {
+                                await executeAttackSteal(cp, defender, segment, id);
+                            }
+                            resolvePay();
+                        });
+                    } else {
+                        openPayOrLoseModal(defender, 3, segEl.innerText.split('\n')[0].trim(), () => {
+                            defender.tokens -= 3;
+                            logAction(`${defender.name} paid 3 tokens to hold their ground against ATTACK!`);
+                            showToast('defense','Segment Held!',`${defender.name} paid 3 tokens to hold the segment.`);
+                            resolvePay();
+                        }, async () => {
+                            await executeAttackSteal(cp, defender, segment, id);
+                            resolvePay();
+                        });
+                    }
                 });
             } else {
                 await executeAttackSteal(cp, defender, segment, id);
@@ -1694,6 +1872,9 @@ async function handleTargetingClick(id, segment, segEl) {
         const defender = players.find(p => p.id === segment.owner);
         const blocked = await attemptAttackAsync(cp.id, defender.id, card.power, card.name, card.desc);
         if (!blocked) {
+            if (isMultiplayer) {
+                socket.emit('start-bid-war', { roomCode, challengerId: cp.id, defenderId: defender.id, segmentId: id });
+            }
             await new Promise(res => executeBiddingWar(cp, defender, segment, segEl, res));
         }
         finish();
@@ -1705,6 +1886,9 @@ async function handleTargetingClick(id, segment, segEl) {
         const defender = players.find(p => p.id === segment.owner);
         const blocked = await attemptAttackAsync(cp.id, defender.id, card.power, card.name, card.desc);
         if (!blocked) {
+            if (isMultiplayer) {
+                socket.emit('start-bid-war', { roomCode, challengerId: cp.id, defenderId: defender.id, segmentId: id });
+            }
             await new Promise(res => executeBiddingWar(cp, defender, segment, segEl, res));
         }
         finish();
@@ -1737,6 +1921,7 @@ async function handleTargetingClick(id, segment, segEl) {
 }
 
 async function handleSegmentClick(id, segEl) {
+    if (isMultiplayer && !isLocalTurn()) return;
     const cp = players[currentPlayerIndex];
     const segment = board[id];
     

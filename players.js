@@ -103,5 +103,8 @@ beginConquestBtn.addEventListener('click', () => {
     }));
 
     localStorage.setItem('empireClimbPlayers', JSON.stringify(gamePlayers));
+    localStorage.removeItem('empireClimbRoomCode');
+    localStorage.removeItem('empireClimbIsMultiplayer');
+    localStorage.removeItem('empireClimbIsHost');
     window.location.href = 'game.html';
 });

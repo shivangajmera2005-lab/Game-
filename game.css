@@ -2616,3 +2616,13 @@ body.card-overlay-open .game-footer {
     background: rgba(237, 231, 219, 0.97);
 }
 
+/* Inactive player turn lock */
+body.not-my-turn .board-area,
+body.not-my-turn .action-buttons button:not(#chat-toggle-btn),
+body.not-my-turn .player-hand {
+    pointer-events: none;
+    opacity: 0.75;
+    filter: grayscale(15%);
+    transition: all 0.3s ease;
+}
+
