@@ -220,9 +220,19 @@ function applyGameState(state) {
 
 function syncGameState() {
     if (isSpectator) return;
-    // In multiplayer, only push state when it's your turn (or you're the host doing initial sync)
-    // This prevents each client from overwriting the shared state with their stale local copy.
+    // In multiplayer, only push state when it's your turn.
+    // This prevents stale local copies from overwriting the shared state.
     if (isMultiplayer && !isLocalTurn()) return;
+    if (socket && socket.connected && roomCode) {
+        const state = serializeGameState();
+        socket.emit('game-state-update', { roomCode, gameState: state });
+    }
+}
+
+// Force-push state regardless of whose turn it is.
+// Used at turn handoffs so every client learns who is next.
+function forceSyncGameState() {
+    if (isSpectator) return;
     if (socket && socket.connected && roomCode) {
         const state = serializeGameState();
         socket.emit('game-state-update', { roomCode, gameState: state });
@@ -254,8 +264,8 @@ function connectSocketSync() {
             // Only the HOST pushes the authoritative initial state.
             // Guests wait silently for the host's broadcast.
             if (isHost) {
-                // Give a tiny delay so all guests have a moment to connect first
-                setTimeout(() => syncGameState(), 500);
+                // Delay so all guests have time to connect & join the room first
+                setTimeout(() => forceSyncGameState(), 1500);
             }
         } else {
             // Local pass-and-play room creation
@@ -316,23 +326,33 @@ function connectSocketSync() {
     });
 
     socket.on('game-state-update', (state) => {
-        // Accept state updates when it's not our turn, OR when we're a guest
-        // who hasn't loaded the real game yet (players array will be empty).
-        const guestWaitingForInit = isMultiplayer && !isHost && players.length === 0;
+        // A guest is "waiting for init" if their players have no hands yet
+        // (localStorage has players but the host hasn't dealt cards yet).
+        const guestWaitingForInit = isMultiplayer && !isHost &&
+            (players.length === 0 || players.every(p => !p.hand || p.hand.length === 0));
+
         if (isSpectator || !isLocalTurn() || guestWaitingForInit) {
-            console.log('[game] received state sync');
+            console.log('[game] received state sync, applying...');
             applyGameState(state);
 
-            // If we were waiting for initial state, now boot up the chat panel
-            if (guestWaitingForInit && isMultiplayer) {
-                const chatWidget = document.getElementById('chat-widget');
-                if (chatWidget && chatWidget.style.display !== 'block') {
-                    chatWidget.style.display = 'block';
-                    initChatHandlers();
+            // If it's now THIS client's turn after the sync (e.g. host passed to us),
+            // show the turn-transition overlay so the player knows they're up.
+            if (isLocalTurn() && isMultiplayer) {
+                const cp = players[currentPlayerIndex];
+                const overlay = document.getElementById('turn-transition-overlay');
+                const title = document.getElementById('turn-transition-title');
+                const subtitle = document.getElementById('turn-transition-subtitle');
+                if (overlay && title && subtitle && cp) {
+                    title.textContent = cp.name;
+                    title.style.color = cp.color;
+                    subtitle.textContent = 'YOUR TURN BEGINS';
+                    overlay.classList.add('visible');
+                    setTimeout(() => overlay.classList.remove('visible'), 1500);
                 }
             }
         }
     });
+
 
     socket.on('player-connection-status', ({ name, connected }) => {
         console.log(`[game] player connection status: ${name} -> ${connected}`);
@@ -689,7 +709,12 @@ function endTurn() {
         endGame();
         return;
     }
-    
+
+    // CRITICAL: force-push the updated state (with new currentPlayerIndex) to all
+    // clients BEFORE startTurn() — the turn guard in syncGameState() would block
+    // this because it's now a different player's turn on this browser.
+    forceSyncGameState();
+
     startTurn();
 }
 

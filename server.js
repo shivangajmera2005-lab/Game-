@@ -357,8 +357,9 @@ io.on('connection', (socket) => {
         if (room.players.length < 3) {
             return socket.emit('error', { message: 'Need at least 3 players to start.' });
         }
-        // Server-side validation: all players must be ready
-        const allReady = room.players.every(p => p.ready);
+        // Server-side validation: all NON-HOST players must be ready
+        // (Host has no ready button — they control the Start button itself)
+        const allReady = room.players.every(p => p.socketId === room.hostId || p.ready);
         if (!allReady) {
             return socket.emit('error', { message: 'All players must be ready to start the game.' });
         }

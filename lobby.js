@@ -165,10 +165,11 @@
             playersListEl.appendChild(empty);
         }
 
-        // Update start button state (host only, needs ≥ 3 and all ready)
+        // Update start button state (host only, needs ≥ 3 and all non-host players ready)
         if (isHost) {
             const minPlayersMet = players.length >= 3;
-            const allReady = players.every(p => p.ready);
+            const guests = players.filter(p => !p.isHost);
+            const allReady = guests.every(p => p.ready);
             const canStart = minPlayersMet && allReady;
 
             btnStartGame.disabled = !canStart;
@@ -176,7 +177,7 @@
             if (!minPlayersMet) {
                 startNote.textContent = `Need at least 3 players to start (${players.length}/3)`;
             } else if (!allReady) {
-                const unreadyCount = players.filter(p => !p.ready).length;
+                const unreadyCount = guests.filter(p => !p.ready).length;
                 startNote.textContent = `Waiting for ${unreadyCount} player${unreadyCount > 1 ? 's' : ''} to be ready`;
             } else {
                 startNote.textContent = `All players ready — ready to start!`;
@@ -208,6 +209,11 @@
 
         hostControls.style.display = amIHost ? 'flex' : 'none';
         guestWaiting.style.display = amIHost ? 'none' : 'flex';
+
+        // Host doesn't need a ready button — they control the Start button
+        if (btnReadyToggle) {
+            btnReadyToggle.style.display = amIHost ? 'none' : '';
+        }
 
         showState('lobby');
     }
