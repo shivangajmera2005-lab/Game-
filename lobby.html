@@ -179,6 +179,30 @@
         <!-- Floating Premium Toast Notification Container -->
         <div class="lobby-toast-container" id="lobby-toast-container"></div>
 
+        <!-- ======================== ALLIANCE CHAT WIDGET ======================== -->
+        <div id="chat-widget" class="chat-widget" style="display: none;">
+            <!-- Chat Toggle Button -->
+            <button id="chat-toggle-btn" class="chat-toggle-btn">
+                <span class="chat-icon">💬</span>
+                <span id="chat-badge" class="chat-badge">0</span>
+            </button>
+
+            <!-- Chat Window Panel -->
+            <div id="chat-panel" class="chat-panel collapsed">
+                <div class="chat-header">
+                    <span class="chat-header-title">ALLIANCE CHAT</span>
+                    <button id="chat-close-btn" class="chat-close-btn">✕</button>
+                </div>
+                <div id="chat-messages" class="chat-messages">
+                    <div class="chat-system-message">Secure communication link established.</div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="chat-input" placeholder="Enter transmission..." maxlength="120" autocomplete="off" />
+                    <button id="chat-send-btn" class="chat-send-btn">SEND</button>
+                </div>
+            </div>
+        </div>
+
     </main><!-- /lobby-page -->
 
     <!-- Socket.IO client (CDN) -->

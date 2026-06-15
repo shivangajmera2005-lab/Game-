@@ -16,6 +16,7 @@
     let isHost = false;
     let myPlayerName = '';
     let myReadyStatus = false;
+    let chatUnreadCount = 0;
 
     // ── Socket connection ────────────────────────────────────────────
     const socket = io(SERVER_URL, {
@@ -215,6 +216,28 @@
             btnReadyToggle.style.display = amIHost ? 'none' : '';
         }
 
+        // Show chat widget and reset state
+        const chatWidget = document.getElementById('chat-widget');
+        if (chatWidget) {
+            chatWidget.style.display = 'block';
+            const msgContainer = document.getElementById('chat-messages');
+            if (msgContainer) {
+                msgContainer.innerHTML = '<div class="chat-system-message">Secure communication link established.</div>';
+            }
+            const input = document.getElementById('chat-input');
+            if (input) input.value = '';
+            chatUnreadCount = 0;
+            const badge = document.getElementById('chat-badge');
+            if (badge) {
+                badge.style.display = 'none';
+                badge.textContent = '0';
+            }
+            const panel = document.getElementById('chat-panel');
+            if (panel) {
+                panel.classList.add('collapsed');
+            }
+        }
+
         showState('lobby');
     }
 
@@ -245,6 +268,58 @@
                 animationDelay: `${Math.random() * 10}s`,
             });
             container.appendChild(p);
+        }
+    }
+
+    function initChatHandlers() {
+        const toggleBtn = document.getElementById('chat-toggle-btn');
+        const closeBtn = document.getElementById('chat-close-btn');
+        const panel = document.getElementById('chat-panel');
+        const input = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('chat-send-btn');
+        const badge = document.getElementById('chat-badge');
+
+        if (!toggleBtn || !panel) return;
+
+        toggleBtn.addEventListener('click', () => {
+            panel.classList.remove('collapsed');
+            chatUnreadCount = 0;
+            if (badge) {
+                badge.style.display = 'none';
+                badge.textContent = '0';
+            }
+            if (input) input.focus();
+        });
+
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Avoid triggering toggleBtn click
+            panel.classList.add('collapsed');
+        });
+
+        if (sendBtn) {
+            sendBtn.addEventListener('click', () => {
+                sendChatMessage();
+            });
+        }
+
+        if (input) {
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    sendChatMessage();
+                }
+            });
+        }
+    }
+
+    function sendChatMessage() {
+        const input = document.getElementById('chat-input');
+        if (!input) return;
+        const text = input.value.trim();
+        if (!text) return;
+
+        if (socket && socket.connected) {
+            socket.emit('send-chat-msg', { roomCode: currentRoomCode, message: text });
+            input.value = '';
         }
     }
 
@@ -356,6 +431,34 @@
         setTimeout(() => {
             window.location.href = `game.html?room=${currentRoomCode}&name=${encodeURIComponent(myPlayerName)}&host=${isHost}`;
         }, 1200);
+    });
+
+    socket.on('chat-msg-received', ({ sender, color, message, timestamp }) => {
+        const msgContainer = document.getElementById('chat-messages');
+        if (!msgContainer) return;
+
+        const isSelf = sender === myPlayerName;
+        const bubble = document.createElement('div');
+        bubble.className = `chat-msg-bubble ${isSelf ? 'self' : 'other'}`;
+
+        bubble.innerHTML = `
+            <div class="chat-msg-sender" style="color: ${color}">${sender}</div>
+            <div class="chat-msg-text">${escapeHtml(message)}</div>
+        `;
+
+        msgContainer.appendChild(bubble);
+        msgContainer.scrollTop = msgContainer.scrollHeight;
+
+        // If panel is collapsed, update unread count badge
+        const panel = document.getElementById('chat-panel');
+        if (panel && panel.classList.contains('collapsed')) {
+            chatUnreadCount++;
+            const badge = document.getElementById('chat-badge');
+            if (badge) {
+                badge.style.display = 'block';
+                badge.textContent = chatUnreadCount;
+            }
+        }
     });
 
     // ── Server-side error ─────────────────────────────────────────────
@@ -479,6 +582,11 @@
         clearError(createErrEl);
         clearError(joinErrEl);
 
+        const chatWidget = document.getElementById('chat-widget');
+        if (chatWidget) {
+            chatWidget.style.display = 'none';
+        }
+
         showState('entry');
         socket.connect();
     });
@@ -487,6 +595,7 @@
     //  INIT
     // ═══════════════════════════════════════════════════════════════
     spawnParticles();
+    initChatHandlers();
     showState('entry');
 
 })();
