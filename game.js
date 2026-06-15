@@ -15,6 +15,7 @@ let isSpectator = false;
 let roomCode = null;
 let isMultiplayer = false;
 let isHost = false; // true only for the player who created the room
+let chatUnreadCount = 0;
 
 // State variables for events
 let activeEvent = null;
@@ -374,6 +375,35 @@ function connectSocketSync() {
                     overlay.classList.add('visible');
                     setTimeout(() => overlay.classList.remove('visible'), 1500);
                 }
+            }
+        }
+    });
+
+    socket.on('chat-msg-received', ({ sender, color, message, timestamp }) => {
+        const msgContainer = document.getElementById('chat-messages');
+        if (!msgContainer) return;
+
+        const myName = sessionStorage.getItem('empireClimbMyName') || 'Host';
+        const isSelf = sender === myName;
+        const bubble = document.createElement('div');
+        bubble.className = `chat-msg-bubble ${isSelf ? 'self' : 'other'}`;
+
+        bubble.innerHTML = `
+            <div class="chat-msg-sender" style="color: ${color}">${sender}</div>
+            <div class="chat-msg-text">${escapeHtml(message)}</div>
+        `;
+
+        msgContainer.appendChild(bubble);
+        msgContainer.scrollTop = msgContainer.scrollHeight;
+
+        // If panel is collapsed, update unread count badge
+        const panel = document.getElementById('chat-panel');
+        if (panel && panel.classList.contains('collapsed')) {
+            chatUnreadCount++;
+            const badge = document.getElementById('chat-badge');
+            if (badge) {
+                badge.style.display = 'block';
+                badge.textContent = chatUnreadCount;
             }
         }
     });
@@ -2290,6 +2320,66 @@ const lobbyBtn = document.getElementById('btn-lobby');
 
 if (rematchBtn) rematchBtn.addEventListener('click', resetGame);
 if (lobbyBtn) lobbyBtn.addEventListener('click', () => { window.location.href = 'players.html'; });
+
+function initChatHandlers() {
+    const toggleBtn = document.getElementById('chat-toggle-btn');
+    const closeBtn = document.getElementById('chat-close-btn');
+    const panel = document.getElementById('chat-panel');
+    const input = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('chat-send-btn');
+    const badge = document.getElementById('chat-badge');
+
+    if (!toggleBtn || !panel) return;
+
+    toggleBtn.addEventListener('click', () => {
+        panel.classList.remove('collapsed');
+        chatUnreadCount = 0;
+        if (badge) {
+            badge.style.display = 'none';
+            badge.textContent = '0';
+        }
+        if (input) input.focus();
+    });
+
+    closeBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Avoid triggering toggleBtn click
+        panel.classList.add('collapsed');
+    });
+
+    if (sendBtn) {
+        sendBtn.addEventListener('click', () => {
+            sendChatMessage();
+        });
+    }
+
+    if (input) {
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        });
+    }
+}
+
+function sendChatMessage() {
+    const input = document.getElementById('chat-input');
+    if (!input) return;
+    const text = input.value.trim();
+    if (!text) return;
+
+    if (socket && socket.connected) {
+        socket.emit('send-chat-msg', { roomCode, message: text });
+        input.value = '';
+    }
+}
+
+function escapeHtml(str) {
+    return (str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
 
 // Boot
 initGame();

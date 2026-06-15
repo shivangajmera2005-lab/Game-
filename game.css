@@ -2626,3 +2626,43 @@ body.not-my-turn .player-hand {
     transition: all 0.3s ease;
 }
 
+/* Mobile responsive adjustments for Chat Widget */
+@media (max-width: 600px) {
+    .chat-widget {
+        bottom: 12px;
+        right: 12px;
+    }
+    .chat-toggle-btn {
+        width: 52px;
+        height: 52px;
+    }
+    .chat-icon {
+        font-size: 1.4rem;
+    }
+    .chat-panel {
+        bottom: 64px;
+        width: calc(100vw - 24px);
+        height: 320px;
+        border-radius: 8px;
+    }
+    .chat-messages {
+        padding: 10px;
+        gap: 8px;
+    }
+    .chat-msg-text {
+        font-size: 0.8rem;
+        padding: 6px 10px;
+    }
+    .chat-input-area {
+        padding: 8px 12px;
+    }
+    #chat-input {
+        font-size: 0.8rem;
+        padding: 6px 10px;
+    }
+    .chat-send-btn {
+        padding: 6px 12px;
+        font-size: 0.7rem;
+    }
+}
+
