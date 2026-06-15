@@ -289,9 +289,9 @@ io.on('connection', (socket) => {
     });
 
     // ── DEFENSE RESPONSE ─────────────────────────────────────────────
-    socket.on('defense-response', ({ roomCode, blocked, defenseCard }) => {
+    socket.on('defense-response', ({ roomCode, blocked, cardIdx }) => {
         const code = (roomCode || '').trim().toUpperCase();
-        socket.to(code).emit('defense-response', { blocked, defenseCard });
+        socket.to(code).emit('defense-response', { blocked, cardIdx });
     });
 
     // ── REQUEST PAY OR LOSE ──────────────────────────────────────────

@@ -478,6 +478,7 @@
         joinNameEl.value = myPlayerName;
         clearError(createErrEl);
         clearError(joinErrEl);
+
         showState('entry');
         socket.connect();
     });

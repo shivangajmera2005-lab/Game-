@@ -112,6 +112,15 @@ function initGame() {
         });
     });
 
+    // Show chat widget in multiplayer online mode (including spectators)
+    if (isMultiplayer) {
+        const chatWidget = document.getElementById('chat-widget');
+        if (chatWidget) {
+            chatWidget.style.display = 'block';
+            initChatHandlers();
+        }
+    }
+
     if (isSpectator) {
         // Set spectator body class and display indicator
         document.body.classList.add('spectator-active');
@@ -155,12 +164,6 @@ function initGame() {
         rosterEl.innerHTML = '<div style="color:#aaa; font-family:\'Orbitron\', monospace; font-size:0.9rem; text-align:center; padding: 20px;">SYNCING GAME STATE...</div>';
         currentPlayerNameEl.textContent = '...';
 
-        const chatWidget = document.getElementById('chat-widget');
-        if (chatWidget) {
-            chatWidget.style.display = 'block';
-            initChatHandlers();
-        }
-
         // Connect — we will applyGameState once the host broadcasts
         connectSocketSync();
         return;
@@ -181,13 +184,7 @@ function initGame() {
     updateUI();
     startTurn();
 
-    if (isMultiplayer) {
-        const chatWidget = document.getElementById('chat-widget');
-        if (chatWidget) {
-            chatWidget.style.display = 'block';
-            initChatHandlers();
-        }
-    }
+
 
     // Connect to sync server (host will push authoritative state on connect)
     connectSocketSync();
@@ -281,7 +278,9 @@ function connectSocketSync() {
         console.log('[game] connected to sync server');
         if (isSpectator) {
             // Join as spectator
-            socket.emit('join-room', { roomCode, playerName: 'Spectator_' + Math.floor(Math.random()*1000) });
+            const specName = 'Spectator_' + Math.floor(Math.random()*1000);
+            sessionStorage.setItem('empireClimbMyName', specName);
+            socket.emit('join-room', { roomCode, playerName: specName });
         } else if (roomCode) {
             // Join as active player
             const myName = sessionStorage.getItem('empireClimbMyName') || 'Host';
@@ -1306,12 +1305,18 @@ async function attemptAttackAsync(attackerId, defenderId, attackPower, attackCar
             socket.once('defense-response', ({ blocked, cardIdx }) => {
                 console.log('[game] Received defense-response:', blocked, cardIdx);
                 if (blocked) {
-                    const card = defender.hand[cardIdx];
-                    defender.hand.splice(cardIdx, 1);
-                    lastPlayedCard = card;
-                    const attackerName = attacker ? attacker.name : 'attacker';
-                    logAction(`<strong>${defender.name}</strong> played a Defense Card (Power ${card.power}) and blocked the ${attackCardName} from ${attackerName}!`);
-                    showToast('defense', 'Attack Blocked!', `${defender.name} used a Defense Card (Power ${card.power}).`);
+                    if (defender.hand && defender.hand[cardIdx]) {
+                        const card = defender.hand[cardIdx];
+                        defender.hand.splice(cardIdx, 1);
+                        lastPlayedCard = card;
+                        const attackerName = attacker ? attacker.name : 'attacker';
+                        logAction(`<strong>${defender.name}</strong> played a Defense Card (Power ${card.power}) and blocked the ${attackCardName} from ${attackerName}!`);
+                        showToast('defense', 'Attack Blocked!', `${defender.name} used a Defense Card (Power ${card.power}).`);
+                    } else {
+                        console.warn('[game] Defender hand or card index invalid on attacker side:', cardIdx);
+                        logAction(`<strong>${defender.name}</strong> played a Defense Card and blocked the ${attackCardName} from ${attacker ? attacker.name : 'attacker'}!`);
+                        showToast('defense', 'Attack Blocked!', `${defender.name} blocked the attack.`);
+                    }
                 }
                 resolve(blocked);
             });
