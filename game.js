@@ -477,25 +477,33 @@ function initChatHandlers() {
     toggleBtn.addEventListener('click', () => {
         panel.classList.remove('collapsed');
         chatUnreadCount = 0;
-        badge.style.display = 'none';
-        badge.textContent = '0';
-        input.focus();
-    });
-
-    closeBtn.addEventListener('click', (e) => {
-        e.stopPropagation(); // Avoid triggering toggleBtn click
-        panel.classList.add('collapsed');
-    });
-
-    sendBtn.addEventListener('click', () => {
-        sendChatMessage();
-    });
-
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            sendChatMessage();
+        if (badge) {
+            badge.style.display = 'none';
+            badge.textContent = '0';
         }
+        if (input) input.focus();
     });
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            panel.classList.add('collapsed');
+        });
+    }
+
+    if (sendBtn) {
+        sendBtn.addEventListener('click', () => {
+            sendChatMessage();
+        });
+    }
+
+    if (input) {
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        });
+    }
 }
 
 function sendChatMessage() {
