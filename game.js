@@ -113,13 +113,11 @@ function initGame() {
         });
     });
 
-    // Show chat widget in multiplayer online mode (including spectators)
-    if (isMultiplayer) {
-        const chatWidget = document.getElementById('chat-widget');
-        if (chatWidget) {
-            chatWidget.style.display = 'block';
-            initChatHandlers();
-        }
+    // Show chat widget (online multiplayer or local pass & play testing)
+    const chatWidget = document.getElementById('chat-widget');
+    if (chatWidget) {
+        chatWidget.style.display = 'block';
+        initChatHandlers();
     }
 
     if (isSpectator) {
@@ -380,32 +378,7 @@ function connectSocketSync() {
     });
 
     socket.on('chat-msg-received', ({ sender, color, message, timestamp }) => {
-        const msgContainer = document.getElementById('chat-messages');
-        if (!msgContainer) return;
-
-        const myName = sessionStorage.getItem('empireClimbMyName') || 'Host';
-        const isSelf = sender === myName;
-        const bubble = document.createElement('div');
-        bubble.className = `chat-msg-bubble ${isSelf ? 'self' : 'other'}`;
-
-        bubble.innerHTML = `
-            <div class="chat-msg-sender" style="color: ${color}">${sender}</div>
-            <div class="chat-msg-text">${escapeHtml(message)}</div>
-        `;
-
-        msgContainer.appendChild(bubble);
-        msgContainer.scrollTop = msgContainer.scrollHeight;
-
-        // If panel is collapsed, update unread count badge
-        const panel = document.getElementById('chat-panel');
-        if (panel && panel.classList.contains('collapsed')) {
-            chatUnreadCount++;
-            const badge = document.getElementById('chat-badge');
-            if (badge) {
-                badge.style.display = 'block';
-                badge.textContent = chatUnreadCount;
-            }
-        }
+        appendChatMessage(sender, color, message);
     });
 
     socket.on('request-defense', async ({ attackerId, defenderId, attackPower, attackCardName, attackCardDesc }) => {
@@ -514,6 +487,42 @@ function sendChatMessage() {
     if (socket && socket.connected) {
         socket.emit('send-chat-msg', { roomCode, message: text });
         input.value = '';
+    } else {
+        // Fallback for local pass-and-play or offline testing
+        const myName = sessionStorage.getItem('empireClimbMyName') || 'Host';
+        const color = '#ffd700'; // Default gold color
+        appendChatMessage(myName, color, text);
+        input.value = '';
+    }
+}
+
+function appendChatMessage(sender, color, message) {
+    const msgContainer = document.getElementById('chat-messages');
+    if (!msgContainer) return;
+    if (typeof SFX !== 'undefined') SFX.chatMsg();
+
+    const myName = sessionStorage.getItem('empireClimbMyName') || 'Host';
+    const isSelf = sender === myName;
+    const bubble = document.createElement('div');
+    bubble.className = `chat-msg-bubble ${isSelf ? 'self' : 'other'}`;
+
+    bubble.innerHTML = `
+        <div class="chat-msg-sender" style="color: ${color}">${sender}</div>
+        <div class="chat-msg-text">${escapeHtml(message)}</div>
+    `;
+
+    msgContainer.appendChild(bubble);
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+
+    // If panel is collapsed, update unread count badge
+    const panel = document.getElementById('chat-panel');
+    if (panel && panel.classList.contains('collapsed')) {
+        chatUnreadCount++;
+        const badge = document.getElementById('chat-badge');
+        if (badge) {
+            badge.style.display = 'block';
+            badge.textContent = chatUnreadCount;
+        }
     }
 }
 
@@ -774,6 +783,7 @@ function startTurn() {
         title.style.color = cp.color;
         subtitle.textContent = "YOUR TURN BEGINS";
         overlay.classList.add('visible');
+        if (typeof SFX !== 'undefined') SFX.turnStart();
         setTimeout(() => {
             overlay.classList.remove('visible');
         }, 1500);
@@ -811,6 +821,7 @@ function endTurn() {
 
 function declareBankruptcy(player) {
     player.bankrupt = true;
+    if (typeof SFX !== 'undefined') SFX.bankruptcy();
     let segmentsFreed = 0;
     Object.keys(board).forEach(id => {
         if (board[id].owner === player.id) {
@@ -960,6 +971,7 @@ function processEndRound() {
     // Draw Event
     const ev = eventDeck[Math.floor(Math.random() * eventDeck.length)];
     activeEvent = ev;
+    if (typeof SFX !== 'undefined') SFX.eventDraw();
     
     // UI Update
     const eventBox = document.getElementById('active-event-box');
@@ -997,6 +1009,7 @@ function processEndRound() {
         
         if (revenue > 0) {
             p.tokens += revenue;
+            if (typeof SFX !== 'undefined') SFX.tokenGain();
             logAction(`<span style="color:${p.color}">${p.name}</span> gained ${revenue} tokens from segments.`);
         }
         
@@ -1008,6 +1021,7 @@ function processEndRound() {
             p.hand.push(card);
             drawn++;
         }
+        if (drawn > 0 && typeof SFX !== 'undefined') SFX.cardDraw();
         if (drawn > 0) {
             logAction(`<span style="color:${p.color}">${p.name}</span> drew ${drawn} cards.`);
         }
@@ -1111,6 +1125,7 @@ if(btnBuyFlag) {
         if (cp.tokens >= 5 && cp.flags < 12) { // must leave 3 tokens
             cp.tokens -= 2;
             cp.flags += 1;
+            if (typeof SFX !== 'undefined') SFX.click();
             logAction(`<strong>${cp.name}</strong> purchased a flag.`);
             updateUI();
         }
@@ -1121,6 +1136,7 @@ if(btnPass) {
     btnPass.addEventListener('click', () => {
         if (isMultiplayer && !isLocalTurn()) return;
         const cp = players[currentPlayerIndex];
+        if (typeof SFX !== 'undefined') SFX.tokenLoss();
         cp.tokens -= 2;
         if (cp.tokens < 3) {
             declareBankruptcy(cp);
@@ -1272,6 +1288,7 @@ function openDefenseModal(attackerId, defender, attackPower, attackCardName, att
                     const attackerName = attacker ? attacker.name : 'attacker';
                     logAction(`<strong>${defender.name}</strong> played a Defense Card (Power ${card.power}) and blocked the ${attackCardName} from ${attackerName}!`);
                     showToast('defense', 'Attack Blocked!', `${defender.name} used a Defense Card (Power ${card.power}).`);
+                    if (typeof SFX !== 'undefined') SFX.defense();
                     cleanup();
                     resolve({ blocked: true, cardIdx: idx });
                 });
@@ -1415,6 +1432,7 @@ function openSplitBidOverlay(leftPlayer, rightPlayer, segmentName, segmentStatus
     // Lock board
     document.querySelector('.game-container')?.classList.add('board-locked');
     overlay.style.display = 'flex';
+    if (typeof SFX !== 'undefined') SFX.bidWar();
     showToast('bid', 'Bidding War!', `${leftPlayer.name} vs ${rightPlayer.name} for ${segmentName}`);
 }
 
@@ -1620,6 +1638,7 @@ async function executeBiddingWar(challenger, defender, segment, segEl, onComplet
             socket.emit('bid-war-update', { roomCode, payload: { type: 'confirm', bidderId: challenger.id, amount: leftBid } });
         }
         onBidWarUpdate({ type: 'confirm', bidderId: challenger.id, amount: leftBid });
+        if (typeof SFX !== 'undefined') SFX.bidConfirm();
     };
     const rightConfirmH = () => {
         if (activeSide !== 'right' || resolved) return;
@@ -1628,6 +1647,7 @@ async function executeBiddingWar(challenger, defender, segment, segEl, onComplet
             socket.emit('bid-war-update', { roomCode, payload: { type: 'confirm', bidderId: defender.id, amount: rightBid } });
         }
         onBidWarUpdate({ type: 'confirm', bidderId: defender.id, amount: rightBid });
+        if (typeof SFX !== 'undefined') SFX.bidConfirm();
     };
     const leftFoldH = () => {
         if (activeSide !== 'left' || resolved) return;
@@ -1680,6 +1700,7 @@ function playCard(handIdx) {
             return;
         }
         // Enter targeting mode
+        if (typeof SFX !== 'undefined') SFX.attack();
         targetingMode = { cardIdx: handIdx, card: card, targets: [] };
         document.body.classList.add('targeting-active');
         logAction(`<em>${cp.name} is targeting with ${card.name}...</em>`);
@@ -1711,6 +1732,7 @@ function wasteCard(handIdx) {
         cardEl.classList.add('waste-animation');
     }
     
+    if (typeof SFX !== 'undefined') SFX.cardWaste();
     setTimeout(() => {
         cp.hand.splice(handIdx, 1);
         lastWastedCard = card;
@@ -2029,6 +2051,7 @@ async function handleSegmentClick(id, segEl) {
                 }
                 segment.owner = cp.id;
                 lastAction = { type: 'claim', segmentId: id };
+                if (typeof SFX !== 'undefined') SFX.segmentClaim();
                 if (segment.level === 2 && eventModifiers.l2FirstFree) {
                     eventModifiers.l2FirstFree = false;
                     logAction(`<strong>${cp.name}</strong> claimed the first Level 2 segment for FREE!`);
@@ -2202,6 +2225,7 @@ function endGame() {
 
     if (winScreen) {
         winScreen.classList.add('visible');
+        if (typeof SFX !== 'undefined') SFX.victory();
     }
 }
 
@@ -2302,3 +2326,119 @@ if (lobbyBtn) lobbyBtn.addEventListener('click', () => { window.location.href = 
 
 // Boot
 initGame();
+
+// ============================================================
+//   BACKGROUND MUSIC CONTROLLER
+// ============================================================
+(function initBgMusic() {
+    const audio = document.getElementById('bg-music');
+    const toggleBtn = document.getElementById('music-toggle');
+    const iconMuted = document.getElementById('music-icon-muted');
+    const iconUnmuted = document.getElementById('music-icon-unmuted');
+    const label = document.getElementById('music-label');
+
+    if (!audio || !toggleBtn) return;
+
+    // Set a comfortable ambient volume
+    audio.volume = 0.3;
+
+    // Check saved preference
+    const savedPref = sessionStorage.getItem('empireClimbMusicMuted');
+    let isMuted = savedPref !== 'false'; // default muted
+
+    function updateUI() {
+        if (isMuted) {
+            audio.pause();
+            toggleBtn.classList.remove('playing');
+            toggleBtn.title = 'Unmute music';
+            if (iconMuted) iconMuted.style.display = '';
+            if (iconUnmuted) iconUnmuted.style.display = 'none';
+            if (label) label.textContent = 'MUTED';
+        } else {
+            audio.play().catch(() => {
+                // Autoplay blocked — will retry on next user interaction
+                isMuted = true;
+                updateUI();
+            });
+            toggleBtn.classList.add('playing');
+            toggleBtn.title = 'Mute music';
+            if (iconMuted) iconMuted.style.display = 'none';
+            if (iconUnmuted) iconUnmuted.style.display = '';
+            if (label) label.textContent = 'PLAYING';
+        }
+    }
+
+    toggleBtn.addEventListener('click', () => {
+        isMuted = !isMuted;
+        sessionStorage.setItem('empireClimbMusicMuted', isMuted ? 'true' : 'false');
+        updateUI();
+    });
+
+    // Initialize UI state
+    updateUI();
+
+    // If user previously chose unmuted, try to auto-play on first interaction
+    if (!isMuted) {
+        const tryAutoPlay = () => {
+            audio.play().catch(() => {});
+            document.removeEventListener('click', tryAutoPlay);
+            document.removeEventListener('keydown', tryAutoPlay);
+        };
+        document.addEventListener('click', tryAutoPlay, { once: true });
+        document.addEventListener('keydown', tryAutoPlay, { once: true });
+    }
+})();
+
+// ── Settings Panel Toggle ──────────────────────────────────────────
+(function initSettingsPanel() {
+    const settingsToggle = document.getElementById('settings-toggle');
+    const settingsPanel = document.getElementById('settings-panel');
+    if (!settingsToggle || !settingsPanel) return;
+
+    settingsToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        settingsPanel.classList.toggle('collapsed');
+    });
+
+    settingsPanel.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+
+    document.addEventListener('click', () => {
+        settingsPanel.classList.add('collapsed');
+    });
+})();
+
+// ── SFX toggle controller ─────────────────────────────────────────
+(function initSfxToggle() {
+    const toggleBtn = document.getElementById('sfx-toggle');
+    const iconMuted = document.getElementById('sfx-icon-muted');
+    const iconUnmuted = document.getElementById('sfx-icon-unmuted');
+    const label = document.getElementById('sfx-label');
+
+    if (!toggleBtn) return;
+
+    let isSfxMuted = sessionStorage.getItem('empireClimbSfxMuted') === 'true';
+
+    function updateUI() {
+        if (isSfxMuted) {
+            toggleBtn.title = 'Unmute sound effects';
+            if (iconMuted) iconMuted.style.display = '';
+            if (iconUnmuted) iconUnmuted.style.display = 'none';
+            if (label) label.textContent = 'MUTED';
+        } else {
+            toggleBtn.title = 'Mute sound effects';
+            if (iconMuted) iconMuted.style.display = 'none';
+            if (iconUnmuted) iconUnmuted.style.display = '';
+            if (label) label.textContent = 'ENABLED';
+        }
+    }
+
+    toggleBtn.addEventListener('click', () => {
+        isSfxMuted = !isSfxMuted;
+        sessionStorage.setItem('empireClimbSfxMuted', isSfxMuted ? 'true' : 'false');
+        updateUI();
+    });
+
+    updateUI();
+})();

@@ -592,6 +592,117 @@
     });
 
     // ═══════════════════════════════════════════════════════════════
+    //  BACKGROUND MUSIC CONTROLLER
+    // ═══════════════════════════════════════════════════════════════
+    (function initBgMusic() {
+        const audio = document.getElementById('bg-music');
+        const toggleBtn = document.getElementById('music-toggle');
+        const iconMuted = document.getElementById('music-icon-muted');
+        const iconUnmuted = document.getElementById('music-icon-unmuted');
+        const label = document.getElementById('music-label');
+
+        if (!audio || !toggleBtn) return;
+
+        audio.volume = 0.3;
+
+        const savedPref = sessionStorage.getItem('empireClimbMusicMuted');
+        let isMuted = savedPref !== 'false'; // default muted
+
+        function updateUI() {
+            if (isMuted) {
+                audio.pause();
+                toggleBtn.classList.remove('playing');
+                toggleBtn.title = 'Unmute music';
+                if (iconMuted) iconMuted.style.display = '';
+                if (iconUnmuted) iconUnmuted.style.display = 'none';
+                if (label) label.textContent = 'MUTED';
+            } else {
+                audio.play().catch(() => {
+                    isMuted = true;
+                    updateUI();
+                });
+                toggleBtn.classList.add('playing');
+                toggleBtn.title = 'Mute music';
+                if (iconMuted) iconMuted.style.display = 'none';
+                if (iconUnmuted) iconUnmuted.style.display = '';
+                if (label) label.textContent = 'PLAYING';
+            }
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            isMuted = !isMuted;
+            sessionStorage.setItem('empireClimbMusicMuted', isMuted ? 'true' : 'false');
+            updateUI();
+        });
+
+        updateUI();
+
+        if (!isMuted) {
+            const tryAutoPlay = () => {
+                audio.play().catch(() => {});
+                document.removeEventListener('click', tryAutoPlay);
+                document.removeEventListener('keydown', tryAutoPlay);
+            };
+            document.addEventListener('click', tryAutoPlay, { once: true });
+            document.addEventListener('keydown', tryAutoPlay, { once: true });
+        }
+    })();
+
+    // ── Settings Panel Toggle ──────────────────────────────────────────
+    (function initSettingsPanel() {
+        const settingsToggle = document.getElementById('settings-toggle');
+        const settingsPanel = document.getElementById('settings-panel');
+        if (!settingsToggle || !settingsPanel) return;
+
+        settingsToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            settingsPanel.classList.toggle('collapsed');
+        });
+
+        settingsPanel.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        document.addEventListener('click', () => {
+            settingsPanel.classList.add('collapsed');
+        });
+    })();
+
+    // ── SFX toggle controller ─────────────────────────────────────────
+    (function initSfxToggle() {
+        const toggleBtn = document.getElementById('sfx-toggle');
+        const iconMuted = document.getElementById('sfx-icon-muted');
+        const iconUnmuted = document.getElementById('sfx-icon-unmuted');
+        const label = document.getElementById('sfx-label');
+
+        if (!toggleBtn) return;
+
+        let isSfxMuted = sessionStorage.getItem('empireClimbSfxMuted') === 'true';
+
+        function updateUI() {
+            if (isSfxMuted) {
+                toggleBtn.title = 'Unmute sound effects';
+                if (iconMuted) iconMuted.style.display = '';
+                if (iconUnmuted) iconUnmuted.style.display = 'none';
+                if (label) label.textContent = 'MUTED';
+            } else {
+                toggleBtn.title = 'Mute sound effects';
+                if (iconMuted) iconMuted.style.display = 'none';
+                if (iconUnmuted) iconUnmuted.style.display = '';
+                if (label) label.textContent = 'ENABLED';
+            }
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            isSfxMuted = !isSfxMuted;
+            sessionStorage.setItem('empireClimbSfxMuted', isSfxMuted ? 'true' : 'false');
+            updateUI();
+        });
+
+        updateUI();
+    })();
+
+    // ═══════════════════════════════════════════════════════════════
     //  INIT
     // ═══════════════════════════════════════════════════════════════
     spawnParticles();

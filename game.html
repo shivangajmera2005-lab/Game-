@@ -40,11 +40,61 @@
 
     <!-- Top-Right Controls Container -->
     <div class="top-right-controls" style="position: fixed; top: 15px; right: 20px; z-index: 10000; display: flex; align-items: center; gap: 12px;">
-        <!-- Theme Toggle Button -->
-        <button class="theme-toggle-btn" id="theme-toggle" style="position: relative;" aria-label="Switch to light mode" title="Switch to light mode">
-            <span class="theme-icon">☀️</span>
-            <span class="theme-label">Light</span>
-        </button>
+        <div class="settings-dropdown-wrapper">
+            <button class="settings-toggle-btn" id="settings-toggle" aria-label="Open Settings" title="Open Settings">
+                <svg class="settings-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+            </button>
+            <div class="settings-panel collapsed" id="settings-panel">
+                <h3 class="settings-title">SETTINGS</h3>
+                <div class="settings-option">
+                    <span class="settings-label">Theme</span>
+                    <button class="theme-toggle-btn" id="theme-toggle" aria-label="Switch to light mode" title="Switch to light mode">
+                        <span class="theme-icon">☀️</span>
+                        <span class="theme-label">Light</span>
+                    </button>
+                </div>
+                <div class="settings-option">
+                    <span class="settings-label">Music</span>
+                    <button class="music-toggle-btn" id="music-toggle" aria-label="Toggle background music" title="Unmute music">
+                        <svg id="music-icon-muted" class="music-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <line x1="23" y1="9" x2="17" y2="15"></line>
+                            <line x1="17" y1="9" x2="23" y2="15"></line>
+                        </svg>
+                        <svg id="music-icon-unmuted" class="music-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                        </svg>
+                        <span class="music-label" id="music-label">MUTED</span>
+                    </button>
+                </div>
+                <div class="settings-option">
+                    <span class="settings-label">Sound FX</span>
+                    <button class="sfx-toggle-btn" id="sfx-toggle" aria-label="Toggle Sound Effects" title="Mute SFX">
+                        <svg id="sfx-icon-muted" class="sfx-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                            <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
+                            <line x1="23" y1="9" x2="17" y2="15"></line>
+                            <line x1="17" y1="9" x2="23" y2="15"></line>
+                        </svg>
+                        <svg id="sfx-icon-unmuted" class="sfx-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                        </svg>
+                        <span class="sfx-label" id="sfx-label">ENABLED</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Background Music Audio -->
+        <audio id="bg-music" loop preload="auto">
+            <source src="audio/audio1.wav" type="audio/wav">
+        </audio>
 
         <!-- Host Room Code Badge -->
         <div id="host-room-badge" class="host-room-badge" style="display: none; position: relative; top: auto; right: auto;">
@@ -373,7 +423,7 @@
     </div>
 
     <!-- ======================== ALLIANCE CHAT WIDGET ======================== -->
-    <div id="chat-widget" class="chat-widget" style="display: none;">
+    <div id="chat-widget" class="chat-widget">
         <!-- Chat Toggle Button -->
         <button id="chat-toggle-btn" class="chat-toggle-btn">
             <span class="chat-icon">💬</span>
@@ -405,6 +455,7 @@
     </div>
 
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
+    <script src="sfx.js"></script>
     <script src="game.js"></script>
 </body>
 

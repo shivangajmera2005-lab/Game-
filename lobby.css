@@ -1213,3 +1213,279 @@ body::before {
     }
 }
 
+/* ============================================================
+   MUSIC TOGGLE BUTTON
+   ============================================================ */
+.music-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: rgba(255, 215, 0, 0.08);
+    border: 1px solid rgba(255, 215, 0, 0.4);
+    border-radius: 50px;
+    color: #FFD700;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    text-transform: uppercase;
+    backdrop-filter: blur(8px);
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.music-toggle-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 215, 0, 0.12);
+    opacity: 0;
+    transition: opacity 0.3s;
+    border-radius: inherit;
+}
+
+.music-toggle-btn:hover::before { opacity: 1; }
+
+.music-toggle-btn:hover {
+    border-color: rgba(255, 215, 0, 0.7);
+    box-shadow: 0 0 16px rgba(255, 215, 0, 0.25);
+    transform: translateY(-1px);
+}
+
+.music-toggle-btn:active { transform: scale(0.96); }
+
+.music-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.music-toggle-btn:hover .music-icon {
+    transform: scale(1.2);
+}
+
+.music-label { font-size: 0.55rem; }
+
+/* Playing state — subtle glow pulse */
+.music-toggle-btn.playing {
+    border-color: rgba(255, 215, 0, 0.7);
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.15);
+    animation: musicPulse 2s ease-in-out infinite;
+}
+
+@keyframes musicPulse {
+    0%, 100% { box-shadow: 0 0 12px rgba(255, 215, 0, 0.15); }
+    50%      { box-shadow: 0 0 20px rgba(255, 215, 0, 0.3), 0 0 40px rgba(255, 215, 0, 0.1); }
+}
+
+/* Light mode overrides */
+[data-theme="light"] .music-toggle-btn {
+    background: rgba(165, 117, 12, 0.08);
+    border-color: rgba(165, 117, 12, 0.45);
+    color: #7a5500;
+}
+[data-theme="light"] .music-toggle-btn::before {
+    background: rgba(165, 117, 12, 0.1);
+}
+[data-theme="light"] .music-toggle-btn:hover {
+    border-color: rgba(165, 117, 12, 0.7);
+    box-shadow: 0 0 16px rgba(165, 117, 12, 0.2);
+}
+[data-theme="light"] .music-toggle-btn.playing {
+    border-color: rgba(165, 117, 12, 0.7);
+    box-shadow: 0 0 12px rgba(165, 117, 12, 0.2);
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+    .music-toggle-btn {
+        padding: 4px 10px;
+        font-size: 0.45rem;
+        gap: 4px;
+    }
+    .music-icon {
+        width: 14px;
+        height: 14px;
+    }
+    .music-label {
+        font-size: 0.4rem;
+    }
+}
+
+/* ============================================================
+   SETTINGS PANEL & DROPDOWN
+   ============================================================ */
+.settings-dropdown-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.settings-toggle-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 215, 0, 0.35);
+    background: linear-gradient(135deg, rgba(15, 15, 25, 0.85) 0%, rgba(25, 20, 40, 0.85) 100%);
+    color: #ffd700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    backdrop-filter: blur(8px);
+}
+
+.settings-toggle-btn:hover {
+    border-color: rgba(255, 215, 0, 0.6);
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.25);
+    transform: scale(1.05);
+}
+
+.settings-toggle-btn:hover .settings-icon {
+    transform: rotate(45deg);
+}
+
+.settings-icon {
+    transition: transform 0.4s ease;
+}
+
+.settings-panel {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    width: 260px;
+    padding: 16px;
+    background: linear-gradient(145deg, rgba(12, 12, 20, 0.96) 0%, rgba(18, 14, 30, 0.96) 100%);
+    border: 1px solid rgba(255, 215, 0, 0.15);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(16px);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    z-index: 10100;
+    transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), visibility 0.25s ease;
+    transform-origin: top right;
+}
+
+.settings-panel.collapsed {
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.9) translateY(-10px);
+    pointer-events: none;
+}
+
+.settings-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: #ffd700;
+    margin: 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+    text-transform: uppercase;
+}
+
+.settings-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.settings-label {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #bbb;
+    letter-spacing: 0.05em;
+}
+
+.settings-panel .theme-toggle-btn,
+.settings-panel .music-toggle-btn,
+.settings-panel .sfx-toggle-btn {
+    margin: 0;
+    width: auto;
+    flex-grow: 0;
+}
+
+/* Light Theme Overrides */
+[data-theme="light"] .settings-toggle-btn {
+    border-color: rgba(180, 140, 50, 0.4);
+    background: linear-gradient(135deg, rgba(245, 240, 230, 0.9) 0%, rgba(235, 225, 210, 0.9) 100%);
+    color: #8B6914;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .settings-panel {
+    background: linear-gradient(145deg, rgba(255, 252, 245, 0.98) 0%, rgba(245, 238, 225, 0.98) 100%);
+    border-color: rgba(180, 140, 50, 0.25);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="light"] .settings-title {
+    color: #8B6914;
+    border-bottom-color: rgba(180, 140, 50, 0.15);
+}
+
+[data-theme="light"] .settings-label {
+    color: #555;
+}
+
+/* SFX toggle button style */
+.sfx-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: rgba(0, 170, 255, 0.08);
+    border: 1px solid rgba(0, 170, 255, 0.4);
+    border-radius: 50px;
+    color: #00e5ff;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    text-transform: uppercase;
+    backdrop-filter: blur(8px);
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.sfx-toggle-btn:hover {
+    border-color: rgba(0, 170, 255, 0.7);
+    box-shadow: 0 0 16px rgba(0, 170, 255, 0.25);
+    transform: translateY(-1px);
+}
+
+.sfx-toggle-btn:active {
+    transform: scale(0.96);
+}
+
+.sfx-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.sfx-label {
+    font-size: 0.55rem;
+}
+
+[data-theme="light"] .sfx-toggle-btn {
+    background: rgba(0, 120, 200, 0.08);
+    border-color: rgba(0, 120, 200, 0.45);
+    color: #007799;
+}
